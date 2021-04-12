@@ -1,0 +1,105 @@
+# ide files and similiar
+.vscode
+cmake-build-*
+.idea
+build
+
+# debuggers and profilers
+.gdb_history
+*.nvvp
+
+# cmake files
+CmakeCache.txt
+CMakeFiles
+
+# documentation
+docs
+
+# python environment
+python/bin/*
+python/include/*
+python/share/*
+python/lib/*
+
+# object files and binaries
+playground/**
+!playground/**/
+!playground*/**/CMakeLists.txt
+!playground/**/*.sh
+!playground/**/*.c
+!playground/**/*.cxx
+!playground/**/*.cl
+!playground/**/*.h
+!playground/**/*.hpp
+
+# object files and binaries
+oclfft/**
+!oclfft/**/
+!oclfft*/**/CMakeLists.txt
+!oclfft/**/*.c
+!oclfft/**/*.cxx
+!oclfft/**/*.cl
+!oclfft/**/*.sh
+!oclfft/**/*.h
+!oclfft/**/*.hpp
+oclfft/**/lookup.cl
+
+# test examples and try outs
+tests*/**
+!tests*/**/
+!tests*/**/CMakeLists.txt
+!tests*/**/*.c
+!tests*/**/*.cxx
+!tests*/**/*.cl
+!tests*/**/*.h
+!tests*/**/*.hpp
+
+# python environment
+plots/bin/*
+plots/include/*
+plots/share/*
+plots/lib/*
+
+# latex intermediate files
+proposal/*
+!proposal/**/
+!proposal/**/images/
+!proposal/**/bash/
+!proposal/**/cpp/
+!proposal/**/c/
+!proposal/**/python/
+!proposal/**/*.tex
+!proposal/**/*.bib
+
+# latex intermediate files
+midterm/*
+!midterm/**/
+!midterm/**/images/
+!midterm/**/bash/
+!midterm/**/cpp/
+!midterm/**/c/
+!midterm/**/python/
+!midterm/**/*.tex
+!midterm/**/*.bib
+
+# latex intermediate files
+final/*
+!final/**/
+!final/**/images/
+!final/**/bash/
+!final/**/cpp/
+!final/**/c/
+!final/**/python/
+!final/**/*.tex
+!final/**/*.bib
+
+# latex intermediate files
+report/*
+!report/**/
+!report/**/images/
+!report/**/bash/
+!report/**/cpp/
+!report/**/c/
+!report/**/python/
+!report/**/*.tex
+!report/**/*.bib

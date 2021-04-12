@@ -1,0 +1,183 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote.
+% If that is unneeded, please comment it out.
+%\usepackage[backend=bibtex,style=verbose-trad2]{biblatex}
+
+\usepackage{adjustbox}
+\usepackage{algorithmic}
+\usepackage{amsmath,amssymb,amsfonts}
+%\usepackage[backend=bibtex,style=ieee]{biblatex}
+%\usepackage{bookmark}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{cite}
+\usepackage{color}
+\usepackage[inline]{enumitem}
+\usepackage{float}
+\usepackage[T1]{fontenc}
+%\usepackage{fontspec}
+\usepackage{footnote}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,citecolor=blue]{hyperref}
+\usepackage{inputenc}[utf8]
+\usepackage{listings}
+\usepackage{textcomp}
+\usepackage[flushleft]{threeparttable}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{siunitx}
+
+% \usepackage{newunicodechar}
+% \newunicodechar{°}{\degree}
+
+\title{Fast Fourier Transform%\\
+%{\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore 
+% and should not be used}
+%\thanks{Identify applicable funding agency here. If none, delete this.}
+}
+
+\pagenumbering{arabic}
+\pagestyle{plain}
+
+% Ensure decimal numbering in table  of contents
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\arabic{section}.\arabic{subsection}.\arabic{subsubsection}}
+
+% ensure decimal numbering for sub sections
+\makeatletter
+\renewcommand{\@seccntformat}[1]{\csname the#1\endcsname.\quad}
+\makeatother
+
+% ------------------------------------------------------------------------%
+% Proper Python Syntax Highlighting                                       %
+% Author: redmode
+% https://tex.stackexchange.com/questions/83882/how-to-highlight-python   %
+% -syntax-in-latex-listings-lstinputlistings-command#83883                %
+% ----------------------------------------------------------------------- %
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{8}  % for normal
+
+% Custom colors
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+% Python style for highlighting
+\newcommand\pythonstyle{
+	\lstset{
+		language=Python,
+		basicstyle=\ttm,
+		showstringspaces=false,
+		tabsize=4,
+		aboveskip=0.2cm,
+		belowskip=0.2cm,
+		otherkeywords={self},             % Add keywords here
+		keywordstyle=\ttb\color{deepblue},
+		emph={MyClass,__init__},          % Custom highlighting
+		emphstyle=\ttb\color{deepred},    % Custom highlighting style
+		stringstyle=\color{deepgreen},
+		frame=tb,                          % Any extra options here
+		prebreak=\textbackslash,
+		linewidth=8.85cm,
+		breaklines=true,
+	}
+}
+
+% Python environment
+\lstnewenvironment{python}[1][] {
+	\pythonstyle\lstset{#1}
+}{}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+% Python for external file
+\newcommand\pythonexternal[2][]{{\pythonstyle\lstinputlisting[#1]{#2}}}
+
+% ----------------------------------------------------------------------- %
+
+% Bash style for highlighting
+\newcommand\bashstyle{
+	\lstset{
+		language=Bash,
+		basicstyle=\ttm,
+		showstringspaces=false,
+		tabsize=2,
+		aboveskip=0.2cm,
+		belowskip=0.2cm,
+		prebreak=\textbackslash,
+		extendedchars=true,
+		mathescape=false,
+		linewidth=8.85cm,
+		breaklines=true
+	}
+}
+
+% Bash environment
+\lstnewenvironment{bash}[1][] {
+	\bashstyle\lstset{#1}
+}{}
+
+% Bash for inline
+\newcommand\bashinline[1]{{\bashstyle\lstinline!#1!}}
+
+% Bash for external file
+\newcommand\bashexternal[2][]{{\bashstyle\lstinputlisting[#1]{#2}}}
+
+\onecolumn
+
+\begin{document}
+
+\section{Fast Fourier Transform (FFT)}
+One of my favorite general purpose algorithms is Discrete Fourier Transform
+(DFT), however, this algorithm has a high computational complexity of
+$\mathcal{O}(N^2)$. Combined with often accumulating round-off-errors this algorithm
+is rarely used in practice. Luckily, its twin brother Fast Fourier Transform
+(FFT) is the basis for many modern scientific applications and typically has a
+lower complexity of $\mathcal{O}(N\log(N))$. This algorithm manages to transform
+data from its original domain into a frequency domain often providing complex
+numbers with both a real and imaginary component\footnotemark[1].
+
+\footnotetext[1]{Sometimes called IQ in sampling systems although that implies
+the Q is always at a $90\si{\degree}$ phase difference from I while the
+imaginary component could be at any angle. Together the real and imaginary
+component are still used to create a 2D vectors just like in IQ sampling
+systems.}
+
+Many different derivatives of the FFT algorithm exist all with different
+properties and restrictions. For some it might seem less interesting to
+implement some of these derivatives and model their results, however, it is
+important to know ones limits. Knowing I have substantial difficulty with most
+mathematical subjects, I think this will be an excellent balance between an
+interesting subject and mathematical complexity. Perhaps two or three projects
+into the future will I be able to theorizes potential optimizations for FFT
+algorithms as its lower-bound computational complexity is still an ongoing
+area of research.
+
+\subsection{Envisioned approach}
+Having no previous experience implementing FFT algorithms, a first step is to
+implement a straight-forward relatively simple sequential FFT algorithm. Perhaps
+even start with a simple Discrete Cosine Transform (DCT)\footnotemark[2] or DFT
+as these building blocks can be expanded upon to create FFT algorithms.
+
+\footnotetext[2]{DCT and Discrete Sine Transform (DST) are not considered valid
+FFT algorithms as they only compute real or imaginary values respectively.}
+
+Afterwards an FFT algorithm with specific properties will be chosen to
+be implemented such as the Cooley-Tukey algorithm\cite{Cooley1965}. This
+algorithm will be optimized for the specific hardware platform taking properties
+such as cache size, vector size and locality into account. Furthermore, this
+implementation is later adapted to use multi-threading and adapted to be
+computed on a GPU. Inspiration as to how to realize these transformations might
+be sought from libraries such as FFTW\cite{FFTW} and cuFFT\cite{cufft}. In
+addition to using these for inspiration they can be used for output validation
+and performance evaluation as well.
+
+\bibliographystyle{IEEEtran}
+\bibliography{bibliography}
+
+\end{document}

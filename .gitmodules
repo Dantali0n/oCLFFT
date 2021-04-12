@@ -1,0 +1,3 @@
+[submodule "python/wavtocsv"]
+	path = python/wavtocsv
+	url = https://github.com/Lukious/wav-to-csv.git

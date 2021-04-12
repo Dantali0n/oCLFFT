@@ -1,0 +1,65 @@
+stages:
+  - build-lib
+  - build
+  - test
+build-library:
+  stage: build-lib
+  script:
+    - cd $CI_PROJECT_DIR
+    - mkdir -p build
+    - cd build || exit
+    - cmake ..
+    - make oCLFFTsup -j $(nproc)
+  artifacts:
+    paths:
+      - build/lib/liboCLFFTsup.so
+  cache:
+    paths:
+      - "build/*"
+build-documents:
+  stage: build
+  script:
+    - cd $CI_PROJECT_DIR/proposal || exit
+    - texi2pdf proposal.tex
+    - cd $CI_PROJECT_DIR/report || exit
+    - texi2pdf report.tex
+  artifacts:
+    paths:
+      - "*/*.pdf"
+build-documentation:
+  stage: build
+  script:
+    - cd $CI_PROJECT_DIR
+    - mkdir -p build
+    - cd build || exit
+    - cmake -DENABLE_DOXYGEN=on ..
+    - make doxygen
+  artifacts:
+    paths:
+      - "docs/*"
+build-binaries:
+  stage: build
+  script:
+    - cd $CI_PROJECT_DIR || exit
+    - mkdir -p build
+    - cd build || exit
+    - cmake -DENABLE_DOXYGEN=off ..
+    - make -j $(nproc)
+  artifacts:
+    paths:
+      - "*/**/play-objcopy"
+      - "*/**/play-example"
+      - "*/**/testexample"
+  cache:
+    paths:
+      - "build/*"
+test:
+  stage: test
+  script:
+    - cd $CI_PROJECT_DIR || exit
+    - mkdir -p build
+    - cd build || exit
+    - make test
+  cache:
+    paths:
+      - "build/*"
