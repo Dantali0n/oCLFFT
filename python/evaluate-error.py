@@ -30,18 +30,18 @@ mode = 0
 
 for line in fileinput.input():
     line = line.rstrip()
-    if "ref" in line:
+    if "fftw" in line:
         mode = 0
-    elif "tar" in line:
+    elif "oclfft" in line:
         mode = 1
     elif "eof" in line:
         break
-    elif mode is 0:
+    elif mode == 0:
         try:
             reference.append(float(line))
         except:
             print(line)
-    elif mode is 1:
+    elif mode == 1:
         target.append(float(line))
 
 x = [x for x in range(len(reference))]
@@ -65,8 +65,8 @@ p2 = CubicSpline(x, target)
 axs[0].set_title("Evaluate FFT",fontsize=16)
 axs[0].set_xlabel('bin', fontsize=18)
 axs[0].set_ylabel('amplitude', fontsize=16)
-axs[0].plot(x, reference, 'ro',label="reference", color='red')
-axs[0].plot(x, target, 'ro',label="target", color='blue')
+axs[0].plot(x, reference, 'ro', label="FFTW", color='red')
+axs[0].plot(x, target, 'ro', label="oCLFFT", color='blue')
 axs[0].plot(x, p2(x), color='cyan') # plot first order polynomial
 axs[0].plot(x, p1(x), color='pink') # plot first order polynomial
 axs[0].legend(loc='upper left')
