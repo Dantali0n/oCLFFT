@@ -189,14 +189,16 @@ void generate_output(std::vector<std::complex<double>> *result,
 	auto end = std::chrono::high_resolution_clock::now();
 	std::cout << "FFTW window: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
 
+    p = fftw_plan_dft_1d(
+        num_samples, fw_in, fw_out, FFTW_FORWARD, FFTW_MEASURE
+    );
+
 	for(size_t i = 0; i < num_samples; i++) {
 		fw_in[i][0] = (*original)[i].real();
 		fw_in[i][1] = (*original)[i].imag();
 	}
 
 	begin = std::chrono::high_resolution_clock::now();
-	p = fftw_plan_dft_1d(
-		num_samples, fw_in, fw_out, FFTW_FORWARD, FFTW_ESTIMATE);
 	fftw_execute(p);
 	end = std::chrono::high_resolution_clock::now();
 	std::cout << "FFTW fft: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
