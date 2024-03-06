@@ -43,7 +43,7 @@ use_cxx_warning_pedantic()
 # Configurable options and defaults
 OPTION(ENABLE_TESTS "Enable unit tests" ON)
 OPTION(ENABLE_CODECOV "Measure code coverage" OFF)
-OPTION(ENABLE_DOXYGEN "Generate documentation" ON)
+OPTION(ENABLE_DOXYGEN "Generate documentation" OFF)
 OPTION(ENABLE_CI "Enable continuous integration" OFF)
 
 include_directories(${CMAKE_SOURCE_DIR}/lib/include)
@@ -52,7 +52,7 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/include)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
-find_package(OpenCL 2.0 REQUIRED)
+find_package(OpenCL 2.2 REQUIRED)
 
 # Include Commonly required headers
 # include_directories(${ZeroMQ_INCLUDE_DIR})
