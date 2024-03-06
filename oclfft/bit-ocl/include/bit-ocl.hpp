@@ -27,7 +27,7 @@
 
 #define CL_HPP_TARGET_OPENCL_VERSION 200
 
-#include <CL/cl2.hpp>
+#include <CL/opencl.hpp>
 
 /** Because writing multi-line strings as code is insanity */
 /*https://www.linuxjournal.com/content/embedding-file-executable-aka-hello-world-version-5967 */
