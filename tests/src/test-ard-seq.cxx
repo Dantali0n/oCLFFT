@@ -21,7 +21,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "ard-omp.hpp"
+#include "ard-seq.hpp"
 #include "tests.hpp"
 
 BOOST_AUTO_TEST_SUITE(Test_ARDSeq)
