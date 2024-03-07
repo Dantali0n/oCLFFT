@@ -83,6 +83,7 @@ A few examples of files licensed under different authors:
 
 * [Emebedding source files into binaries](https://www.linuxjournal.com/content/embedding-file-executable-aka-hello-world-version-5967)
 * [OpenCL, SyCL and SPIR-V progress 2016](https://www.youtube.com/watch?v=TYp1d6yzHUQ)
+* [RDNA whitepaper](https://www.amd.com/system/files/documents/rdna-whitepaper.pdf)
 
 #### Snippets
 

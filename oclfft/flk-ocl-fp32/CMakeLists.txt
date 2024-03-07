@@ -48,7 +48,7 @@ set(FLK_OCL_HEADERS
 )
 
 message("${PRJ_PRX}: Fast-Lookup OpenCL cxx flags:${CMAKE_CXX_FLAGS}")
-add_executable(flk-ocl-32 ${FLK_OCL_SOURCE} ${FLK_OCL_HEADERS})
+add_executable(flk-ocl-fp32 ${FLK_OCL_SOURCE} ${FLK_OCL_HEADERS})
 
 set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
     ${${PRJ_PRX}_LIBRARIES}
