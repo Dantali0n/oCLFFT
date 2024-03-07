@@ -33,7 +33,9 @@ __constant float *U2[] = {
 };
 
 void kernel print_layout() {
-    printf("G[%lu]L[%lu]\n", get_group_id(0), get_local_id(0));
+    printf("[0]G[%lu]L[%lu] - [1]G[%lu]L[%lu]\n", get_group_id(0), get_local_id(0), get_group_id(1), get_local_id(1));
+//    printf("[1]G[%lu]L[%lu]\n", get_group_id(1), get_local_id(1));
+//    printf("[2]G[%lu]L[%lu]\n", get_group_id(2), get_local_id(2));
 }
 
 /**
@@ -45,7 +47,7 @@ void kernel dummy_operation() {
     float temp = cos(TWO_PI * i);
 }
 
-void kernel window(global float *real, global float *imag, ulong size, ulong wavefront) {
+void kernel window(global float *real, global float *imag, ulong size, const ulong wavefront) {
     const size_t n = size;
     const size_t i = get_group_id(0) * wavefront + get_local_id(0);
     float samplesMinusOne = (convert_float(n) - 1.0);
@@ -56,9 +58,11 @@ void kernel window(global float *real, global float *imag, ulong size, ulong wav
     real[n - (i + 1)] = real[n - (i + 1)] * weighingFactor;
 }
 
-void kernel bit_column(global float *real, global float *imag, const global uint *lookup, const ulong height) {
-    const size_t x = get_global_id(0)+1;
-    const size_t y = get_global_id(1);
+void kernel bit_column(global float *real, global float *imag, const global uint *lookup, const ulong height, const ulong wavefront) {
+    const size_t x = get_group_id(0) * 2 + get_local_id(0) + 1;
+    const size_t y = get_group_id(1) * wavefront + get_local_id(1);
+
+//    printf("[%lu][%lu]\n", x, y);
 
     // skip entire columns per x
     const size_t xh = x*height;
@@ -143,7 +147,7 @@ void kernel fft_pow(global float *real, global float *imag, ulong power, ulong l
     imag[i] += t2;
 }
 
-void kernel magnitude(global float *real, global float *imag) {
-    ulong i = get_global_id(0);
+void kernel magnitude(global float *real, global float *imag, const ulong wavefront) {
+    ulong i = get_group_id(0) * wavefront + get_local_id(0);
     real[i] = sqrt((real[i] * real[i]) + (imag[i] * imag[i]));
 }

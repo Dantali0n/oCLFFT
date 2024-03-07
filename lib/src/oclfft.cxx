@@ -180,11 +180,6 @@ void generate_output(std::vector<std::complex<double>> *result,
     std::vector<std::complex<double>> *original, Results *results,
     oclfft::Output type)
 {
-    if(type != oclfft::OUT_TIME) {
-        generate_output(result, original, type);
-        return;
-    }
-
     size_t num_samples = result->size();
     fftw_complex *fw_in, *fw_out;
     fftw_plan p;
@@ -231,6 +226,13 @@ void generate_output(std::vector<std::complex<double>> *result,
     std::cout << fftw_results.window[0] << "," << fftw_results.fft[0] << ","
         << fftw_results.magnitude[0] << "," << fftw_results.sum(0).count()
         << std::endl;
+
+    // The OUT_NONE match is redundant
+    if(type != oclfft::OUT_TIME && type != oclfft::OUT_NONE) {
+        bool imaginary = false;
+        if (type == oclfft::OUT_IMAGINARY) imaginary = true;
+        generate_output(fw_out, result, num_samples, imaginary);
+    }
 
     fftw_destroy_plan(p);
     fftw_free(fw_in);

@@ -175,14 +175,20 @@ void FlkOCL32::reverse() {
 	kernel_col.setArg(1, this->cl_buffer_i);
 	kernel_col.setArg(2, this->cl_buffer_l);
 	kernel_col.setArg(3, cl_size_t, &height);
-    //	std::cout << "height: " << height << ", block_x: " << block_x << ", block_y: " << block_y << std::endl;
+    kernel_col.setArg(4, cl_size_t, &this->wavefront_size);
+
+//    std::cout << "height: " << height << ", block_x: " << block_x << ", block_y: " << block_y << std::endl;
 
 	// use block_x as first index as hope to optimize for column major accesses,
 	// OpenCL will need to place block_y in same wavefronts. If performance
 	// very bad swap x and y, don't forget to swap in kernel as well.
-	if(this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NullRange) != CL_SUCCESS) {
+    auto begin = std::chrono::high_resolution_clock::now();
+	if(this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NDRange(2, this->wavefront_size)) != CL_SUCCESS) {
         std::cerr << "Failed to enqueue bit_column" << std::endl;
     }
+//    this->cl_queue.finish();
+    auto end = std::chrono::high_resolution_clock::now();
+//    std::cout << "Bit column: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
 	// step 2, matrix transpose
     if(this->cl_queue.enqueueCopyBuffer(this->cl_buffer_r, this->cl_buffer_c, 0, 0, this->data_size) != CL_SUCCESS) {
@@ -194,23 +200,36 @@ void FlkOCL32::reverse() {
 	kernel_trans.setArg(1, cl_size_t, &width);
 	kernel_trans.setArg(2, this->cl_buffer_c);
 	kernel_trans.setArg(3, this->cl_buffer_r);
+
+    begin = std::chrono::high_resolution_clock::now();
     if(this->cl_queue.enqueueNDRangeKernel(kernel_trans, cl::NullRange, cl::NDRange(height, width), cl::NDRange(16, 16)) != CL_SUCCESS) {
         std::cerr << "Failed to enqueue transpose R" << std::endl;
     }
+//    this->cl_queue.finish();
+    end = std::chrono::high_resolution_clock::now();
+//    std::cout << "transpose R: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
     if(this->cl_queue.enqueueCopyBuffer(this->cl_buffer_i, this->cl_buffer_c, 0, 0, this->data_size) != CL_SUCCESS) {
         std::cerr << "Failed to enqueue copy buffer I to C" << std::endl;
     }
 
 	kernel_trans.setArg(3, this->cl_buffer_i);
+    begin = std::chrono::high_resolution_clock::now();
 	if(this->cl_queue.enqueueNDRangeKernel(kernel_trans, cl::NullRange, cl::NDRange(height, width), cl::NDRange(16, 16)) != CL_SUCCESS) {
         std::cerr << "Failed to enqueue transpose I" << std::endl;
     }
+//    this->cl_queue.finish();
+    end = std::chrono::high_resolution_clock::now();
+//    std::cout << "transpose I: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
 	// step 3, repeat column swap
-	if(this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NullRange)!= CL_SUCCESS) {
+    begin = std::chrono::high_resolution_clock::now();
+	if(this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NDRange(2, this->wavefront_size))!= CL_SUCCESS) {
         std::cerr << "Failed to enqueue bit_column" << std::endl;
     }
+//    this->cl_queue.finish();
+    end = std::chrono::high_resolution_clock::now();
+//    std::cout << "Bit column: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
     if(this->cl_queue.finish() != CL_SUCCESS) {
         std::cerr << "Failed to finish bit reverse queue" << std::endl;
@@ -238,17 +257,23 @@ void FlkOCL32::compute() {
 		)) {
             std::cerr << "Failed to enqueue fft_pow[" << i << "]" << std::endl;
         }
-		// std::cout << "pow: " << i << " size(" << this->size/L[i + 1] << ", " << L[i] << ")" << std::endl;
+		std::cout << "pow:[" << i << "][" << L[i] << "," << this->size/L[i + 1] << "]" << std::endl;
 	}
 
 	this->cl_queue.finish();
 }
 
 void FlkOCL32::magnitude() {
+    auto cl_size_t = static_cast<cl::size_type>(sizeof(size_t));
 	cl::Kernel kernel_add = cl::Kernel(this->cL_program, "magnitude");
 	kernel_add.setArg(0, this->cl_buffer_r);
 	kernel_add.setArg(1, this->cl_buffer_i);
-	this->cl_queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(this->size), cl::NullRange);
+    kernel_add.setArg(2, cl_size_t, &this->wavefront_size);
+    if(this->cl_queue.enqueueNDRangeKernel(
+        kernel_add, cl::NullRange, cl::NDRange(this->size), cl::NDRange(this->wavefront_size)) != CL_SUCCESS
+    ) {
+        std::cerr << "Failed to enqueue magnitude" << std::endl;
+    }
 	this->cl_queue.finish();
 }
 
