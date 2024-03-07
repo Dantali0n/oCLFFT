@@ -127,13 +127,13 @@ kernel void transpose(
     }
 }
 
-void kernel fft_pow(global float *real, global float *imag, ulong power, ulong l1, ulong l2, float c1, float c2) {
+void kernel fft_pow(global float *real, global float *imag, ulong power, ulong l1, ulong l2, float c1, float c2, const ulong x_dim, const ulong y_dim) {
 
-    ulong j = get_global_id(0);
+    ulong j = get_group_id(0) * x_dim + get_local_id(0);
 
     float u1 = (U1[power])[j];
 
-    ulong i = (get_global_id(1) * l2) + j;
+    ulong i = ((get_group_id(1) * y_dim + get_local_id(1)) * l2) + j;
 
     float u2 = (U2[power])[j];
 

@@ -246,18 +246,28 @@ void FlkOCL32::compute() {
 	while (((this->size >> power) & 1) != 1) power++;
 
 	for(size_t i = 0; i < power; i++) {
+        auto local_x = std::min(L[i], (size_t)64);
+        auto local_y = 64 / local_x;
+
 		kernel.setArg(2, cl_size_t, &i);
 		kernel.setArg(3, cl_size_t, &L[i]);
 		kernel.setArg(4, cl_size_t, &L[i + 1]);
 		kernel.setArg(5, sizeof(float), &C1[i]);
 		kernel.setArg(6, sizeof(float), &C2[i]);
+        kernel.setArg(7, cl_size_t, &local_x);
+        kernel.setArg(8, cl_size_t, &local_y);
+
+//        std::cout << "pow:[" << i << "][" << L[i] << "," << this->size/L[i + 1] << "]"
+//                  << "[" << local_x << "," << local_y << "]" << std::endl;
+
         if(this->cl_queue.enqueueNDRangeKernel(
 			kernel, cl::NullRange,cl::NDRange(L[i], this->size/L[i + 1]),
-			cl::NullRange
+			cl::NDRange(local_x, local_y)
 		)) {
             std::cerr << "Failed to enqueue fft_pow[" << i << "]" << std::endl;
         }
-		std::cout << "pow:[" << i << "][" << L[i] << "," << this->size/L[i + 1] << "]" << std::endl;
+
+//        this->cl_queue.finish();
 	}
 
 	this->cl_queue.finish();

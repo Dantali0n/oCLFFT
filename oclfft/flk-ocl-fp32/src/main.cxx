@@ -19,6 +19,13 @@
 #include "flk-ocl32.hpp"
 #include "results.hpp"
 
+bool isPowerOfTwo(int n) {
+    if (n == 0)
+        return false;
+
+    return (ceil(log2(n)) == floor(log2(n)));
+}
+
 int main(int argc, char* argv[]) {
     auto data = std::vector<std::complex<double>>();
     auto results = Results();
@@ -27,6 +34,21 @@ int main(int argc, char* argv[]) {
 	parse_args(argc, argv, &opts);
     parse_file(opts.file.get(), &data, opts.samples);
     auto copy = data;
+
+    if(!isPowerOfTwo(opts.wavefront)) {
+        std::cerr << "Wavefront must be 1 or power of 2" << std::endl;
+        exit(1);
+    }
+
+    if(opts.wavefront > 128) {
+        std::cerr << "Wavefront can be maximum of 128" << std::endl;
+        exit(1);
+    }
+
+    if(opts.wavefront*opts.wavefront > data.size()) {
+        std::cerr << "Wavefront to large for workload, minimal: " << opts.wavefront*opts.wavefront << std::endl;
+        exit(1);
+    }
 
     std::cout << "Samples: " << data.size() << std::endl;
     std::cout << "Wavefront: " << opts.wavefront << std::endl;
