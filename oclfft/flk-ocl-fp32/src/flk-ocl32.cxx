@@ -16,16 +16,19 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "flk-ocl.hpp"
+#include "flk-ocl32.hpp"
 
-const std::string FlkOCL::cl_flags = "-O2 -x clc++ -cl-std=CL2.0";
+const std::string FlkOCL32::cl_flags = "-O2 -x clc++ -cl-std=CL2.0";
 
-FlkOCL::FlkOCL(std::vector<std::complex<double>> *data, Results *results) : oCLFFT(data) {
+FlkOCL32::FlkOCL32(
+    std::vector<std::complex<double>> *data, oclfft::options opts, Results *results) : oCLFFT(data
+) {
     this->results = results;
 	this->size = data->size();
-	this->data_size = sizeof(double) * this->size;
-	this->real = (double*) malloc(this->data_size);
-	this->imag = (double*) malloc(this->data_size);
+	this->data_size = sizeof(float) * this->size;
+    this->wavefront_size = opts.wavefront;
+	this->real = (float*) malloc(this->data_size);
+	this->imag = (float*) malloc(this->data_size);
 
 	std::vector<cl::Platform> all_platforms;
 	cl::Platform::get(&all_platforms);
@@ -53,17 +56,25 @@ FlkOCL::FlkOCL(std::vector<std::complex<double>> *data, Results *results) : oCLF
 	this->cl_device.getInfo(CL_DEVICE_GLOBAL_MEM_SIZE, &buff_size);
 	std::cout << ", Global size: " << buff_size << std::endl;
 
+    auto begin = std::chrono::high_resolution_clock::now();
 	this->cl_context = cl::Context({this->cl_device});
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Create context: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+
 	cl::Program::Sources sources;
 	sources.push_back({&_binary_lookup_cl_start, static_cast<cl::size_type>((&_binary_lookup_cl_end - &_binary_lookup_cl_start))});
 	sources.push_back({&_binary_kernels_cl_start, static_cast<cl::size_type>((&_binary_kernels_cl_end - &_binary_kernels_cl_start))});
 
+    begin = std::chrono::high_resolution_clock::now();
 	this->cL_program = cl::Program(this->cl_context, sources);
 	if(this->cL_program.build({this->cl_device}, cl_flags.c_str()) != CL_SUCCESS) {
 		std::cout << "Error building: " << this->cL_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->cl_device) << std::endl;
 		exit(1);
 	}
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << "Compile sources: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
 
+    begin = std::chrono::high_resolution_clock::now();
 	this->cl_buffer_r = cl::Buffer(this->cl_context, CL_MEM_READ_WRITE, this->data_size);
 	this->cl_buffer_i = cl::Buffer(this->cl_context, CL_MEM_READ_WRITE, this->data_size);
 	this->cl_buffer_c = cl::Buffer(this->cl_context, CL_MEM_READ_ONLY, this->data_size);
@@ -92,30 +103,33 @@ FlkOCL::FlkOCL(std::vector<std::complex<double>> *data, Results *results) : oCLF
 	}
 
 	this->cl_buffer_l = cl::Buffer(this->cl_context, CL_MEM_READ_ONLY, this->lookup_size);
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << "Create buffers: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+
+    this->cl_queue.enqueueWriteBuffer(this->cl_buffer_l, CL_TRUE, 0, this->lookup_size, this->lookup);
 
     cl::Kernel kernel_add = cl::Kernel(this->cL_program, "dummy_operation");
-    if(this->cl_queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(this->size>>1), cl::NDRange(2)) != CL_SUCCESS) {
+    if(this->cl_queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(this->size>>1), cl::NDRange(this->wavefront_size)) != CL_SUCCESS) {
         std::cerr << "Failed to enqueue dummy_operation" << std::endl;
     }
     this->cl_queue.finish();
 }
 
-void FlkOCL::push() {
+void FlkOCL32::push() {
     for(size_t i = 0; i < this->size; i++) {
         std::complex<double> elem = (*data)[i];
-        this->real[i] = elem.real();
-        this->imag[i] = elem.imag();
+        this->real[i] = (float)elem.real();
+        this->imag[i] = (float)elem.imag();
     }
 
     auto begin = std::chrono::high_resolution_clock::now();
     this->cl_queue.enqueueWriteBuffer(this->cl_buffer_r, CL_TRUE, 0, this->data_size, this->real);
     this->cl_queue.enqueueWriteBuffer(this->cl_buffer_i, CL_TRUE, 0, this->data_size, this->imag);
-    this->cl_queue.enqueueWriteBuffer(this->cl_buffer_l, CL_TRUE, 0, this->lookup_size, this->lookup);
     auto end = std::chrono::high_resolution_clock::now();
     results->copy_host_to_device.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
 }
 
-void FlkOCL::synchronize() {
+void FlkOCL32::synchronize() {
 	auto begin = std::chrono::high_resolution_clock::now();
 	this->cl_queue.enqueueReadBuffer(this->cl_buffer_r, CL_TRUE, 0, this->data_size, this->real);
 	this->cl_queue.enqueueReadBuffer(this->cl_buffer_i, CL_TRUE, 0, this->data_size, this->imag);
@@ -123,22 +137,26 @@ void FlkOCL::synchronize() {
     results->copy_device_to_host.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
 
 	for(size_t i = 0; i < this->size; i++) {
-		(*this->data)[i].real(this->real[i]);
-		(*this->data)[i].imag(this->imag[i]);
+		(*this->data)[i].real((double)this->real[i]);
+		(*this->data)[i].imag((double)this->imag[i]);
 	}
 }
 
-void FlkOCL::window() {
+void FlkOCL32::window() {
 	auto cl_size_t = static_cast<cl::size_type>(sizeof(size_t));
 	cl::Kernel kernel_add = cl::Kernel(this->cL_program, "window");
 	kernel_add.setArg(0, this->cl_buffer_r);
 	kernel_add.setArg(1, this->cl_buffer_i);
 	kernel_add.setArg(2, cl_size_t, &this->size);
-	this->cl_queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(this->size>>1), cl::NullRange);
+    kernel_add.setArg(3, cl_size_t, &this->wavefront_size);
+
+	if(this->cl_queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(this->size>>1), cl::NDRange(this->wavefront_size)) != CL_SUCCESS) {
+        std::cerr << "Failed to enqueue window" << std::endl;
+    }
 	this->cl_queue.finish();
 }
 
-void FlkOCL::reverse() {
+void FlkOCL32::reverse() {
 	auto cl_size_t = static_cast<cl::size_type>(sizeof(size_t));
 
 	// assume sqrt(n) is integer!
@@ -162,32 +180,44 @@ void FlkOCL::reverse() {
 	// use block_x as first index as hope to optimize for column major accesses,
 	// OpenCL will need to place block_y in same wavefronts. If performance
 	// very bad swap x and y, don't forget to swap in kernel as well.
-	this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NullRange);
+	if(this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NullRange) != CL_SUCCESS) {
+        std::cerr << "Failed to enqueue bit_column" << std::endl;
+    }
 
 	// step 2, matrix transpose
-	this->cl_queue.enqueueCopyBuffer(this->cl_buffer_r, this->cl_buffer_c, 0, 0, this->data_size);
-	//this->cl_queue.enqueueBarrierWithWaitList();
+    if(this->cl_queue.enqueueCopyBuffer(this->cl_buffer_r, this->cl_buffer_c, 0, 0, this->data_size) != CL_SUCCESS) {
+        std::cerr << "Failed to enqueue copy buffer R to C" << std::endl;
+    }
 
 	cl::Kernel kernel_trans = cl::Kernel(this->cL_program, "transpose");
 	kernel_trans.setArg(0, cl_size_t, &height);
 	kernel_trans.setArg(1, cl_size_t, &width);
 	kernel_trans.setArg(2, this->cl_buffer_c);
 	kernel_trans.setArg(3, this->cl_buffer_r);
-	this->cl_queue.enqueueNDRangeKernel(kernel_trans, cl::NullRange, cl::NDRange(height, width), cl::NDRange(16, 16));
+    if(this->cl_queue.enqueueNDRangeKernel(kernel_trans, cl::NullRange, cl::NDRange(height, width), cl::NDRange(16, 16)) != CL_SUCCESS) {
+        std::cerr << "Failed to enqueue transpose R" << std::endl;
+    }
 
-	this->cl_queue.enqueueCopyBuffer(this->cl_buffer_i, this->cl_buffer_c, 0, 0, this->data_size);
-	//this->cl_queue.enqueueBarrierWithWaitList();
+    if(this->cl_queue.enqueueCopyBuffer(this->cl_buffer_i, this->cl_buffer_c, 0, 0, this->data_size) != CL_SUCCESS) {
+        std::cerr << "Failed to enqueue copy buffer I to C" << std::endl;
+    }
 
 	kernel_trans.setArg(3, this->cl_buffer_i);
-	this->cl_queue.enqueueNDRangeKernel(kernel_trans, cl::NullRange, cl::NDRange(height, width), cl::NDRange(16, 16));
+	if(this->cl_queue.enqueueNDRangeKernel(kernel_trans, cl::NullRange, cl::NDRange(height, width), cl::NDRange(16, 16)) != CL_SUCCESS) {
+        std::cerr << "Failed to enqueue transpose I" << std::endl;
+    }
 
 	// step 3, repeat column swap
-	this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NullRange);
+	if(this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NullRange)!= CL_SUCCESS) {
+        std::cerr << "Failed to enqueue bit_column" << std::endl;
+    }
 
-	this->cl_queue.finish();
+    if(this->cl_queue.finish() != CL_SUCCESS) {
+        std::cerr << "Failed to finish bit reverse queue" << std::endl;
+    }
 }
 
-void FlkOCL::compute() {
+void FlkOCL32::compute() {
 	auto cl_size_t = static_cast<cl::size_type>(sizeof(size_t));
 	cl::Kernel kernel = cl::Kernel(this->cL_program, "fft_pow");
 	kernel.setArg(0, this->cl_buffer_r);
@@ -200,19 +230,21 @@ void FlkOCL::compute() {
 		kernel.setArg(2, cl_size_t, &i);
 		kernel.setArg(3, cl_size_t, &L[i]);
 		kernel.setArg(4, cl_size_t, &L[i + 1]);
-		kernel.setArg(5, cl_size_t, &C1[i]);
-		kernel.setArg(6, cl_size_t, &C2[i]);
-		this->cl_queue.enqueueNDRangeKernel(
+		kernel.setArg(5, sizeof(float), &C1[i]);
+		kernel.setArg(6, sizeof(float), &C2[i]);
+        if(this->cl_queue.enqueueNDRangeKernel(
 			kernel, cl::NullRange,cl::NDRange(L[i], this->size/L[i + 1]),
 			cl::NullRange
-		);
+		)) {
+            std::cerr << "Failed to enqueue fft_pow[" << i << "]" << std::endl;
+        }
 		// std::cout << "pow: " << i << " size(" << this->size/L[i + 1] << ", " << L[i] << ")" << std::endl;
 	}
 
 	this->cl_queue.finish();
 }
 
-void FlkOCL::magnitude() {
+void FlkOCL32::magnitude() {
 	cl::Kernel kernel_add = cl::Kernel(this->cL_program, "magnitude");
 	kernel_add.setArg(0, this->cl_buffer_r);
 	kernel_add.setArg(1, this->cl_buffer_i);
@@ -224,7 +256,7 @@ void FlkOCL::magnitude() {
  * Source: https://stackoverflow.com/questions/2602823/in-c-c-whats-the-simplest-way-to-reverse-the-order-of-bits-in-a-byte
  */
 template<typename T>
-T FlkOCL::reverse_bit(T n, size_t b) {
+T FlkOCL32::reverse_bit(T n, size_t b) {
 	assert(b <= std::numeric_limits<T>::digits);
 	T rv = 0;
 

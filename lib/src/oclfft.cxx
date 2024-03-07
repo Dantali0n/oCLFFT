@@ -100,6 +100,8 @@ void parse_args(int argc, char* argv[], struct oclfft::options *options) {
 	desc.add_options()
 		("help,h", "Produce help message")
 		("samples,s", po::value<size_t>(&options->samples)->default_value(oclfft::DEFAULT_SAMPLES), "Set number of samples")
+        ("wavefront,w", po::value<size_t>(&options->wavefront)->default_value(oclfft::DEFAULT_WAVEFRONT), "Set kernel dimensions for work per compute unit")
+        ("iterations,i", po::value<size_t>(&options->iterations)->default_value(oclfft::DEFAULT_ITERATIONS), "Set number of iterations")
 		("file,f", po::value<std::string>(), "Input data csv")
 		("output,o",
 			po::value<oclfft::Output>(&options->output)->default_value(oclfft::OUT_TIME),
@@ -172,6 +174,67 @@ void parse_file(std::string *file, std::vector<std::complex<double>> *data,
 		data->pop_back();
 		samples--;
 	}
+}
+
+void generate_output(std::vector<std::complex<double>> *result,
+    std::vector<std::complex<double>> *original, Results *results,
+    oclfft::Output type)
+{
+    if(type != oclfft::OUT_TIME) {
+        generate_output(result, original, type);
+        return;
+    }
+
+    size_t num_samples = result->size();
+    fftw_complex *fw_in, *fw_out;
+    fftw_plan p;
+    fw_in = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * num_samples);
+    fw_out = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * num_samples);
+
+    for(uint32_t i = 0; i < results->copy_device_to_host.size(); i++) {
+        std::cout << results->copy_host_to_device[i] << "," << results->window[i]
+            << "," << results->reverse[i] << "," << results->fft[i] << ","
+            << results->magnitude[i] << "," << results->copy_device_to_host[i]
+            << "," << results->sum(i).count() << std::endl;
+    }
+
+    auto fftw_results = Results();
+    auto begin = std::chrono::high_resolution_clock::now();
+    window_nuttall(original);
+    auto end = std::chrono::high_resolution_clock::now();
+    fftw_results.window.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
+
+    // Plan and execute once to measure and optimize runtime performance
+    p = fftw_plan_dft_1d(
+        num_samples, fw_in, fw_out, FFTW_FORWARD, FFTW_MEASURE
+    );
+    for(size_t i = 0; i < num_samples; i++) {
+        fw_in[i][0] = (*original)[i].real();
+        fw_in[i][1] = (*original)[i].imag();
+    }
+    fftw_execute(p);
+    for(size_t i = 0; i < num_samples; i++) {
+        fw_in[i][0] = (*original)[i].real();
+        fw_in[i][1] = (*original)[i].imag();
+    }
+
+    begin = std::chrono::high_resolution_clock::now();
+    fftw_execute(p);
+    end = std::chrono::high_resolution_clock::now();
+    fftw_results.fft.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
+
+    begin = std::chrono::high_resolution_clock::now();
+    complex_to_magnitude(fw_out, num_samples);
+    end = std::chrono::high_resolution_clock::now();
+    fftw_results.magnitude.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
+
+    std::cout << fftw_results.window[0] << "," << fftw_results.fft[0] << ","
+        << fftw_results.magnitude[0] << "," << fftw_results.sum(0).count()
+        << std::endl;
+
+    fftw_destroy_plan(p);
+    fftw_free(fw_in);
+    fftw_free(fw_out);
 }
 
 void generate_output(std::vector<std::complex<double>> *result,
@@ -267,12 +330,12 @@ void generate_output(
 	if(imaginary) data_tar = data_tar_i;
 
 	std::cout.precision(oclfft::db_lim::digits10);
-	std::cout << "ref" << std::endl;
+	std::cout << "fftw" << std::endl;
 	for (size_t i = 0; i < n >> 1; i++) {
 		std::cout << std::scientific << data_ref[i] << std::endl;
 	}
 
-	std::cout << "tar" << std::endl;
+	std::cout << "oclfft" << std::endl;
 	for (size_t i = 0; i < n >> 1; i++) {
 		std::cout << std::scientific << data_tar[i] << std::endl;
 	}
@@ -288,12 +351,12 @@ void generate_output(
 	if(imaginary) data_ref = data_ref_i;
 
 	std::cout.precision(oclfft::db_lim::digits10);
-	std::cout << "ref" << std::endl;
+	std::cout << "fftw" << std::endl;
 	for (size_t i = 0; i < n >> 1; i++) {
 		std::cout << std::scientific << data_ref[i] << std::endl;
 	}
 
-	std::cout << "tar" << std::endl;
+	std::cout << "oclfft" << std::endl;
 	for (size_t i = 0; i < n >> 1; i++) {
 		if (imaginary)
 			std::cout << std::scientific << (*data_tar)[i].imag() << std::endl;

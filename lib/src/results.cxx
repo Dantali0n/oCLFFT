@@ -1,6 +1,6 @@
 /*
 	oCLFFT
-	Copyright (C) 2021 Corne Lukken
+	Copyright (C) 2024 Corne Lukken
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,28 +16,22 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DFTSEQ_H
-#define DFTSEQ_H
+#include "results.hpp"
 
-#include "oclfft.hpp"
+std::chrono::duration<double> Results::sum(size_t index) {
+    using cdouble = std::chrono::duration<double, std::micro>;
+    cdouble total {0.0};
 
-class dftseq : public oCLFFT {
-	public:
-		using oCLFFT::oCLFFT;
-        void push() override;
-        void synchronize() override;
-		void window() override;
-		void compute() override;
-		void magnitude() override;
-	protected:
-		// use constexpr as these must be fully computed at compile-time
-		static constexpr double TWO_PI = 2 * M_PI;
-		static constexpr double FOUR_PI = 4 * M_PI;
-		static constexpr double SIX_PI = 6 * M_PI;
+    if(copy_host_to_device.size() > index)
+        total += cdouble(copy_host_to_device[index]);
+    if(window.size() > index)
+        total += cdouble(window[index]);
+    if(reverse.size() > index)
+        total += cdouble(reverse[index]);
+    if(fft.size() > index)
+        total += cdouble(fft[index]);
+    if(copy_device_to_host.size() > index)
+        total += cdouble(copy_device_to_host[index]);
 
-		template <class T> T sq(T x) {
-			return x * x;
-		}
-};
-
-#endif // DFTSEQ_H
+    return total;
+}

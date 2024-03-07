@@ -17,23 +17,23 @@
 */
 
 // Use local memory as it fast enough to not limit performance
-__constant double PI = M_PI;
-__constant double TWO_PI = 2*M_PI;
-__constant double FOUR_PI = 4*M_PI;
-__constant double SIX_PI = 6*M_PI;
+__constant float PI = M_PI;
+__constant float TWO_PI = 2*M_PI;
+__constant float FOUR_PI = 4*M_PI;
+__constant float SIX_PI = 6*M_PI;
 
-__constant double *U1[] = {
+__constant float *U1[] = {
     u10, u11, u12, u13, u14, u15, u16, u17, u18, u19, u110, u111, u112,
     u113, u114, u115, u116, u117, u118, u119, u120, u121
 };
 
-__constant double *U2[] = {
+__constant float *U2[] = {
     u20, u21, u22, u23, u24, u25, u26, u27, u28, u29, u210, u211, u212,
     u213, u214, u215, u216, u217, u218, u219, u220, u221
 };
 
 void kernel print_layout() {
-    printf("G[%lu]L[%lu]\n", get_global_id(0), get_local_id(0));
+    printf("G[%lu]L[%lu]\n", get_group_id(0), get_local_id(0));
 }
 
 /**
@@ -45,49 +45,18 @@ void kernel dummy_operation() {
     float temp = cos(TWO_PI * i);
 }
 
-void kernel window(global double *real, global double *imag, ulong size) {
+void kernel window(global float *real, global float *imag, ulong size, ulong wavefront) {
     const size_t n = size;
-    const size_t i = get_global_id(0);
-    //printf("id: %u\n", i);
-    const size_t n_half = n >> 1;
-    double samplesMinusOne = (convert_double(n) - 1.0);
+    const size_t i = get_group_id(0) * wavefront + get_local_id(0);
+    float samplesMinusOne = (convert_float(n) - 1.0);
 
-    double ratio = ((double)get_global_id(0) / samplesMinusOne);
-    double weighingFactor = 0.355768 - (0.487396 * (cos(TWO_PI * ratio))) + (0.144232 * (cos(FOUR_PI * ratio))) - (0.012604 * (cos(SIX_PI * ratio)));
+    float ratio = ((float)i / samplesMinusOne);
+    float weighingFactor = 0.355768 - (0.487396 * (cos(TWO_PI * ratio))) + (0.144232 * (cos(FOUR_PI * ratio))) - (0.012604 * (cos(SIX_PI * ratio)));
     real[i] = real[i] * weighingFactor;
     real[n - (i + 1)] = real[n - (i + 1)] * weighingFactor;
 }
 
-void kernel bit_reverse(global double *real, global double *imag, ulong size) {
-    const size_t n = size;
-    const size_t nminone = size-1;
-    const size_t n_half = n >> 1;
-
-    size_t j = 0;
-
-    for (size_t i =  get_global_id(0); i < nminone; i++) {
-        //printf("i: %lu", i);
-        //printf("j: %lu", j);
-        if (i < j) {
-            double temp = real[i];
-            real[i] = real[j];
-            real[j] = temp;
-
-            temp = imag[i];
-            imag[i] = imag[j];
-            imag[j] = temp;
-        }
-
-        size_t k = n_half;
-        while (k <= j) {
-            j -= k;
-            k >>= 1;
-        }
-        j += k;
-    }
-}
-
-void kernel bit_column(global double *real, global double *imag, const global uint *lookup, const ulong height) {
+void kernel bit_column(global float *real, global float *imag, const global uint *lookup, const ulong height) {
     const size_t x = get_global_id(0)+1;
     const size_t y = get_global_id(1);
 
@@ -103,7 +72,7 @@ void kernel bit_column(global double *real, global double *imag, const global ui
         // swap destination column
         const size_t swap = lookup[x]*height+y;
 
-        double temp = real[xyh];
+        float temp = real[xyh];
         real[xyh] = real[swap];
         real[swap] = temp;
 
@@ -121,8 +90,8 @@ void kernel bit_column(global double *real, global double *imag, const global ui
  * https://github.com/CNugteren/myGEMM/blob/master/src/kernels.cl#L1247
  */
 kernel void transpose(
-    const ulong P, const ulong Q, const global double *input,
-    global double *output
+    const ulong P, const ulong Q, const global float *input,
+    global float *output
 ) {
 
     // Thread identifiers
@@ -133,7 +102,7 @@ kernel void transpose(
     //printf("tx %lu, ty %lu, id0 %lu, id1 %lu\n", tx, ty, ID0, ID1);
 
     // Set-up the local memory for shuffling
-    local double buffer[TRANSPOSEX][TRANSPOSEY];
+    local float buffer[TRANSPOSEX][TRANSPOSEY];
 
     // Swap the x and y coordinates to perform the rotation (coalesced)
     if (ID0 < P && ID1 < Q) {
@@ -154,19 +123,19 @@ kernel void transpose(
     }
 }
 
-void kernel fft_pow(global double *real, global double *imag, ulong power, ulong l1, ulong l2, double c1, double c2) {
+void kernel fft_pow(global float *real, global float *imag, ulong power, ulong l1, ulong l2, float c1, float c2) {
 
     ulong j = get_global_id(0);
 
-    double u1 = (U1[power])[j];
+    float u1 = (U1[power])[j];
 
     ulong i = (get_global_id(1) * l2) + j;
 
-    double u2 = (U2[power])[j];
+    float u2 = (U2[power])[j];
 
     ulong i1 = i + l1;
-    double t1 = u1 * real[i1] - u2 * imag[i1];
-    double t2 = u1 * imag[i1] + u2 * real[i1];
+    float t1 = u1 * real[i1] - u2 * imag[i1];
+    float t2 = u1 * imag[i1] + u2 * real[i1];
 
     real[i1] = real[i] - t1;
     imag[i1] = imag[i] - t2;
@@ -174,7 +143,7 @@ void kernel fft_pow(global double *real, global double *imag, ulong power, ulong
     imag[i] += t2;
 }
 
-void kernel magnitude(global double *real, global double *imag) {
+void kernel magnitude(global float *real, global float *imag) {
     ulong i = get_global_id(0);
     real[i] = sqrt((real[i] * real[i]) + (imag[i] * imag[i]));
 }

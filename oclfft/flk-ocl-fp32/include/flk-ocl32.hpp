@@ -16,8 +16,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ardocl_h
-#define ardocl_h
+#ifndef flkocl32_h
+#define flkocl32_h
 
 #include <cstdint>
 #include <cstdio>
@@ -25,7 +25,7 @@
 
 #include <chrono>
 
-#define CL_HPP_TARGET_OPENCL_VERSION 200
+#define CL_HPP_TARGET_OPENCL_VERSION 220
 
 #include <CL/opencl.hpp>
 
@@ -39,6 +39,7 @@ extern "C" char _binary_lookup_cl_start;
 extern "C" char _binary_lookup_cl_end;
 
 #include "oclfft.hpp"
+#include "results.hpp"
 
 static constexpr size_t L[] = {
 	1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048,
@@ -48,7 +49,7 @@ static constexpr size_t L[] = {
 	1073741824, 2147483648, 4294967296
 };
 
-static constexpr double C1[] = {
+static constexpr float C1[] = {
 	-1.0, 0.0000000000, 0.707106781186548, 0.923879532511287, 0.98078528040323,
 	0.995184726672197, 0.998795456205172, 0.999698818696204, 0.999924701839145,
 	0.999981175282601, 0.999995293809576, 0.999998823451702, 0.999999705862882,
@@ -59,7 +60,7 @@ static constexpr double C1[] = {
 	1.0000000000, 1.0000000000, 1.0000000000, 1.0000000000
 };
 
-static constexpr double C2[] = {
+static constexpr float C2[] = {
 	0.0, -1.0000000000, -0.707106781186548, -0.38268343236509, -0.195090322016128,
 	-0.0980171403295606, -0.0490676743274178, -0.0245412285229122, -0.0122715382857193,
 	-0.00613588464915602, -0.00306795676296871, -0.00153398018628156, -0.000766990318752704,
@@ -70,11 +71,11 @@ static constexpr double C2[] = {
 	-0.00000000745058059692383, -0.0000000000, -0.0000000000, -0.0000000000
 };
 
-class BitOCL : public oCLFFT {
+class FlkOCL32 : public oCLFFT {
 public:
-    BitOCL(std::vector<std::complex<double>> *data); // : oCLFFT(data)
+	FlkOCL32(std::vector<std::complex<double>> *data, oclfft::options opts, Results *results); // : oCLFFT(data)
     void push() override;
-    void synchronize() override;
+	void synchronize() override;
 	void window() override;
 	void compute() override;
 	void magnitude() override;
@@ -88,13 +89,16 @@ protected:
 	template <typename T>
 	T reverse_bit(T n, size_t b = sizeof(T) * CHAR_BIT);
 
-	double *real;
-	double *imag;
+	float *real;
+    float *imag;
 	uint32_t *lookup;
 
 	size_t size;
 	size_t data_size;
 	size_t lookup_size;
+    size_t wavefront_size;
+
+    Results *results;
 
 	cl::Device cl_device;
 	cl::Context cl_context;
@@ -108,4 +112,4 @@ protected:
 	static const std::string cl_flags;
 };
 
-#endif // ardocl_h
+#endif // flkocl32_h

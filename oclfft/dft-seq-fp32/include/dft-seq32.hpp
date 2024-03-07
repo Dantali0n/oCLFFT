@@ -1,6 +1,6 @@
 /*
 	oCLFFT
-	Copyright (C) 2021 Corne Lukken
+	Copyright (C) 2024 Corne Lukken
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,14 +16,14 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DFTSEQ_H
-#define DFTSEQ_H
+#ifndef DFTSEQ32_H
+#define DFTSEQ32_H
 
 #include "oclfft.hpp"
 
-class dftseq : public oCLFFT {
+class dftseq32 : public oCLFFT {
 	public:
-		using oCLFFT::oCLFFT;
+        dftseq32(std::vector<std::complex<double>> *data);
         void push() override;
         void synchronize() override;
 		void window() override;
@@ -31,13 +31,15 @@ class dftseq : public oCLFFT {
 		void magnitude() override;
 	protected:
 		// use constexpr as these must be fully computed at compile-time
-		static constexpr double TWO_PI = 2 * M_PI;
-		static constexpr double FOUR_PI = 4 * M_PI;
-		static constexpr double SIX_PI = 6 * M_PI;
+		static constexpr float TWO_PI = 2 * M_PI;
+		static constexpr float FOUR_PI = 4 * M_PI;
+		static constexpr float SIX_PI = 6 * M_PI;
 
 		template <class T> T sq(T x) {
 			return x * x;
 		}
+
+        std::vector<std::complex<float>> dataf;
 };
 
-#endif // DFTSEQ_H
+#endif // DFTSEQ32_H

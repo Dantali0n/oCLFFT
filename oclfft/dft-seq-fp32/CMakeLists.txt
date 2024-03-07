@@ -1,5 +1,5 @@
 # oCLFFT
-# Copyright (C) 2021 Corne Lukken
+# Copyright (C) 2024 Corne Lukken
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,41 +14,35 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-project(${PRJ_LIB})
-
-find_package(
-    Boost 1.32 COMPONENTS
-    program_options
-    REQUIRED
-)
-
-find_package(FFTW REQUIRED)
-
-set(${PRJ_LIB}_LIBRARIES
-    Boost::program_options
-    ${FFTW_LIBRARIES}
-)
-
-set(LIB_${PRJ_LIB}_SRC
-    src/oclfft.cxx
-    src/parsing.cxx
-    src/results.cxx
-)
-
-set(LIB_${PRJ_LIB}_HEADERS.
-    include/oclfft.hpp
-    include/parsing.hpp
-    include/results.hpp
-)
+project(dft-seq-fp32)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-add_library(
-    ${PRJ_LIB} SHARED
-    ${LIB_${PRJ_LIB}_SRC}
-    ${LIB_${PRJ_LIB}_HEADERS}
-)
-set_target_properties(${PRJ_LIB} PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -ffast-math -ftree-vectorize")
+
+set(${PRJ_PRX}_IMPL_LIBRARIES
     ${PRJ_LIB}
-    ${${PRJ_LIB}_LIBRARIES}
+)
+
+set(DFT_SEQ_SOURCE
+    src/dft-seq32.cxx
+    src/main.cxx
+)
+
+set(DFT_SEQ_HEADERS
+    include/dft-seq32.hpp
+)
+
+message("${PRJ_PRX}: DFT fp32 sequential cxx flags:${CMAKE_CXX_FLAGS}")
+add_executable(dft-seq-fp32 ${DFT_SEQ_SOURCE} ${DFT_SEQ_HEADERS})
+
+
+set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
+    ${${PRJ_PRX}_LIBRARIES}
+    ${${PRJ_PRX}_IMPL_LIBRARIES}
+)
+
+target_link_libraries(
+    dft-seq-fp32
+    ${${PRJ_PRX}_IMPL_LIBRARIES_PACK}
 )

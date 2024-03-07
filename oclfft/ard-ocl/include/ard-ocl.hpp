@@ -73,7 +73,8 @@ static constexpr double C2[] = {
 class ArdOCL : public oCLFFT {
 public:
 	ArdOCL(std::vector<std::complex<double>> *data); // : oCLFFT(data)
-	void synchronize() override;
+    void push() override;
+    void synchronize() override;
 	void window() override;
 	void compute() override;
 	void magnitude() override;

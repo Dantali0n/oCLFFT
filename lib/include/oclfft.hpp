@@ -31,6 +31,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "results.hpp"
 
 /**
  * Note on when shared_ptr is used: I only use shared_ptr to prolong the life of
@@ -47,6 +48,12 @@ namespace oclfft {
 
 	// Default amount of samples if not specified
 	constexpr size_t DEFAULT_SAMPLES = 512;
+
+    // Default amount of work to submit to each to single compute unit
+    constexpr size_t DEFAULT_WAVEFRONT = 32;
+
+    // Default amount of times to repeat the work
+    constexpr size_t DEFAULT_ITERATIONS = 1;
 
 	// numeric precision limit of double
 	typedef std::numeric_limits<double> db_lim;
@@ -68,7 +75,9 @@ namespace oclfft {
 	struct options {
 		/** values */
 		size_t samples;
-		Output output;
+        size_t wavefront;
+        size_t iterations;
+        Output output;
 
 		/** owned / referenced counted */
 		std::shared_ptr<std::string> file;
@@ -83,11 +92,15 @@ class oCLFFT {
 		explicit oCLFFT(std::vector<std::complex<double>> *data);
 		~oCLFFT() = default;
 
-		virtual void synchronize() = 0;
+        // Push host data to the device
+        virtual void push() = 0;
 
 		virtual void window() = 0;
 		virtual void compute() = 0;
 		virtual void magnitude() = 0;
+
+        // Copy device data back to the host
+        virtual void synchronize() = 0;
 	protected:
 		std::vector<std::complex<double>> *data;
 };
@@ -126,6 +139,10 @@ void parse_file(std::string *file, std::vector<std::complex<double>> *data, size
  */
 void generate_output(std::vector<std::complex<double>> *result,
 	std::vector<std::complex<double>> *original, oclfft::Output type);
+
+void generate_output(std::vector<std::complex<double>> *result,
+     std::vector<std::complex<double>> *original, Results *results,
+     oclfft::Output type);
 
 /**
  * Generates output for graphs of python scripts, these are for internal use

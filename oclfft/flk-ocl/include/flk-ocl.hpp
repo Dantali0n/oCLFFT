@@ -72,8 +72,9 @@ static constexpr double C2[] = {
 
 class FlkOCL : public oCLFFT {
 public:
-	FlkOCL(std::vector<std::complex<double>> *data); // : oCLFFT(data)
-	void synchronize() override;
+	FlkOCL(std::vector<std::complex<double>> *data, Results *results); // : oCLFFT(data)
+    void push() override;
+    void synchronize() override;
 	void window() override;
 	void compute() override;
 	void magnitude() override;
@@ -94,6 +95,8 @@ protected:
 	size_t size;
 	size_t data_size;
 	size_t lookup_size;
+
+    Results *results;
 
 	cl::Device cl_device;
 	cl::Context cl_context;

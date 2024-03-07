@@ -18,6 +18,10 @@
 
 #include "dft-seq.hpp"
 
+void dftseq::push() {
+
+}
+
 void dftseq::synchronize() {
 
 }

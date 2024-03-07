@@ -18,9 +18,9 @@
 
 #include "bit-ocl.hpp"
 
-const std::string ArdOCL::cl_flags = "-O2 -x clc++ -cl-std=CL2.0";
+const std::string BitOCL::cl_flags = "-O2 -x clc++ -cl-std=CL2.0";
 
-ArdOCL::ArdOCL(std::vector<std::complex<double>> *data) : oCLFFT(data) {
+BitOCL::BitOCL(std::vector<std::complex<double>> *data) : oCLFFT(data) {
 
 	this->size = data->size();
 	this->data_size = sizeof(double) * this->size;
@@ -98,18 +98,19 @@ ArdOCL::ArdOCL(std::vector<std::complex<double>> *data) : oCLFFT(data) {
 
 	this->cl_buffer_l = cl::Buffer(this->cl_context, CL_MEM_READ_ONLY, this->lookup_size);
 
-	auto begin = std::chrono::high_resolution_clock::now();
-	this->cl_queue.enqueueWriteBuffer(this->cl_buffer_r, CL_TRUE, 0, this->data_size, this->real);
-	this->cl_queue.enqueueWriteBuffer(this->cl_buffer_i, CL_TRUE, 0, this->data_size, this->imag);
-	this->cl_queue.enqueueWriteBuffer(this->cl_buffer_l, CL_TRUE, 0, this->lookup_size, this->lookup);
-	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << "Copy host to device: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
-
-//	cl::Kernel kernel_add = cl::Kernel(this->cL_program, "print_layout");
-//	this->cl_queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(this->size), cl::NDRange(32));
+    this->push();
 }
 
-void ArdOCL::synchronize() {
+void BitOCL::push() {
+    auto begin = std::chrono::high_resolution_clock::now();
+    this->cl_queue.enqueueWriteBuffer(this->cl_buffer_r, CL_TRUE, 0, this->data_size, this->real);
+    this->cl_queue.enqueueWriteBuffer(this->cl_buffer_i, CL_TRUE, 0, this->data_size, this->imag);
+    this->cl_queue.enqueueWriteBuffer(this->cl_buffer_l, CL_TRUE, 0, this->lookup_size, this->lookup);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Copy host to device: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+}
+
+void BitOCL::synchronize() {
 	auto begin = std::chrono::high_resolution_clock::now();
 	this->cl_queue.enqueueReadBuffer(this->cl_buffer_r, CL_TRUE, 0, this->data_size, this->real);
 	this->cl_queue.enqueueReadBuffer(this->cl_buffer_i, CL_TRUE, 0, this->data_size, this->imag);
@@ -122,7 +123,7 @@ void ArdOCL::synchronize() {
 	}
 }
 
-void ArdOCL::window() {
+void BitOCL::window() {
 	auto cl_size_t = static_cast<cl::size_type>(sizeof(size_t));
 	cl::Kernel kernel_add = cl::Kernel(this->cL_program, "window");
 	kernel_add.setArg(0, this->cl_buffer_r);
@@ -132,7 +133,7 @@ void ArdOCL::window() {
 	this->cl_queue.finish();
 }
 
-void ArdOCL::reverse() {
+void BitOCL::reverse() {
 	auto cl_size_t = static_cast<cl::size_type>(sizeof(size_t));
 
 	// assume sqrt(n) is integer!
@@ -181,7 +182,7 @@ void ArdOCL::reverse() {
 	this->cl_queue.finish();
 }
 
-void ArdOCL::compute() {
+void BitOCL::compute() {
 	auto cl_size_t = static_cast<cl::size_type>(sizeof(size_t));
 	cl::Kernel kernel = cl::Kernel(this->cL_program, "fft_pow");
 	kernel.setArg(0, this->cl_buffer_r);
@@ -206,7 +207,7 @@ void ArdOCL::compute() {
 	this->cl_queue.finish();
 }
 
-void ArdOCL::magnitude() {
+void BitOCL::magnitude() {
 	cl::Kernel kernel_add = cl::Kernel(this->cL_program, "magnitude");
 	kernel_add.setArg(0, this->cl_buffer_r);
 	kernel_add.setArg(1, this->cl_buffer_i);
@@ -218,7 +219,7 @@ void ArdOCL::magnitude() {
  * Source: https://stackoverflow.com/questions/2602823/in-c-c-whats-the-simplest-way-to-reverse-the-order-of-bits-in-a-byte
  */
 template<typename T>
-T ArdOCL::reverse_bit(T n, size_t b) {
+T BitOCL::reverse_bit(T n, size_t b) {
 	assert(b <= std::numeric_limits<T>::digits);
 	T rv = 0;
 

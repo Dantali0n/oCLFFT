@@ -1,6 +1,6 @@
 /*
 	oCLFFT
-	Copyright (C) 2021 Corne Lukken
+	Copyright (C) 2024 Corne Lukken
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,28 +16,23 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DFTSEQ_H
-#define DFTSEQ_H
+#ifndef OCLFFT_RESULTS_HPP
+#define OCLFFT_RESULTS_HPP
 
-#include "oclfft.hpp"
+#include <chrono>
+#include <ratio>
+#include <cstdint>
+#include <vector>
 
-class dftseq : public oCLFFT {
-	public:
-		using oCLFFT::oCLFFT;
-        void push() override;
-        void synchronize() override;
-		void window() override;
-		void compute() override;
-		void magnitude() override;
-	protected:
-		// use constexpr as these must be fully computed at compile-time
-		static constexpr double TWO_PI = 2 * M_PI;
-		static constexpr double FOUR_PI = 4 * M_PI;
-		static constexpr double SIX_PI = 6 * M_PI;
+struct Results {
+    std::vector<int64_t> copy_host_to_device = std::vector<int64_t>();
+    std::vector<int64_t> window = std::vector<int64_t>();
+    std::vector<int64_t> reverse = std::vector<int64_t>();
+    std::vector<int64_t> fft = std::vector<int64_t>();
+    std::vector<int64_t> magnitude = std::vector<int64_t>();
+    std::vector<int64_t> copy_device_to_host = std::vector<int64_t>();
 
-		template <class T> T sq(T x) {
-			return x * x;
-		}
+    std::chrono::duration<double> sum(size_t index);
 };
 
-#endif // DFTSEQ_H
+#endif // OCLFFT_RESULTS_HPP

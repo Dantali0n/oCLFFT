@@ -16,20 +16,23 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "flk-ocl.hpp"
+#include "flk-ocl32.hpp"
+#include "results.hpp"
 
 int main(int argc, char* argv[]) {
     auto data = std::vector<std::complex<double>>();
     auto results = Results();
-	oclfft::options opts{};
+    oclfft::options opts{};
+
 	parse_args(argc, argv, &opts);
+    parse_file(opts.file.get(), &data, opts.samples);
+    auto copy = data;
 
-	parse_file(opts.file.get(), &data, opts.samples);
-	auto copy = data;
+    std::cout << "Samples: " << data.size() << std::endl;
+    std::cout << "Wavefront: " << opts.wavefront << std::endl;
+    std::cout << "Iterations: " << opts.iterations << std::endl;
 
-	std::cout << "Samples: " << data.size() << std::endl;
-
-    auto focl = FlkOCL(&data, &results);
+    auto focl = FlkOCL32(&data, opts, &results);
     for(size_t i = 0; i < opts.iterations; i++) {
 
         data.clear();
@@ -60,6 +63,6 @@ int main(int argc, char* argv[]) {
         focl.synchronize();
     }
 
-    if(opts.output != oclfft::OUT_NONE)
+	if(opts.output != oclfft::OUT_NONE)
         generate_output(&data, &copy, &results, opts.output);
 }

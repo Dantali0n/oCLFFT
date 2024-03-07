@@ -16,42 +16,36 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "bit-ocl.hpp"
+#include "dft-seq32.hpp"
 
 int main(int argc, char* argv[]) {
 	oclfft::options opts{};
 	parse_args(argc, argv, &opts);
 
 	auto data = std::vector<std::complex<double>>();
-
 	parse_file(opts.file.get(), &data, opts.samples);
 	auto copy = data;
 
 	std::cout << "Samples: " << data.size() << std::endl;
 
-	auto aocl = BitOCL(&data);
+	auto dft = dftseq32(&data);
 
 	auto begin = std::chrono::high_resolution_clock::now();
-	aocl.window();
+	dft.window();
 	auto end = std::chrono::high_resolution_clock::now();
 	std::cout << "Window: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
 
 	begin = std::chrono::high_resolution_clock::now();
-	aocl.reverse();
-	end = std::chrono::high_resolution_clock::now();
-	std::cout << "Reverse: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
-
-	begin = std::chrono::high_resolution_clock::now();
-	aocl.compute();
+	dft.compute();
 	end = std::chrono::high_resolution_clock::now();
 	std::cout << "FFT: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
 
 	begin = std::chrono::high_resolution_clock::now();
-	aocl.magnitude();
+	dft.magnitude();
 	end = std::chrono::high_resolution_clock::now();
 	std::cout << "Magnitude: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
 
-	aocl.synchronize();
+    dft.synchronize();
 
 	if(opts.output != oclfft::OUT_NONE)
 		generate_output(&data, &copy, opts.output);
