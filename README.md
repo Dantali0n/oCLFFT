@@ -23,14 +23,16 @@ boilerplate CMake files are from
 
 ### Implementations
 
-| Executable | Hardware Target   | Base Algorithm | Properties                    |
-|------------|-------------------|----------------|-------------------------------|
-| ard-seq    | CPU Single Thread | Cooley-Tukey   | Bit-reversal in-place radix-2 |
-| dft-seq    | CPU Single Thread | DFT            |                               |
-| ard-omp    | CPU OpenMP        | Cooley-Tukey   | Bit-reversal in-place radix-2 |
-| ard-ocl    | GPU               | Cooley-Tukey   | Slow bit-reversal, fft lookup |
-| bit-ocl    | GPU               | Cooley-Tukey   | 2D bit-reversal, fft lookup   |
-| flk-ocl    | GPU               | Cooley-Tukey   | 2D bit-reversal, fast lookup  |
+| Executable   | Hardware Target   | Base Algorithm | Precision    | Properties                    |
+|--------------|-------------------|----------------|--------------|-------------------------------|
+| ard-seq      | CPU Single Thread | Cooley-Tukey   | 64bit double | Bit-reversal in-place radix-2 |
+| dft-seq      | CPU Single Thread | DFT            | 64bit double |                               |
+| dft-seq-fp32 | CPU Single Thread | DFT            | 32bit float  |                               |
+| ard-omp      | CPU OpenMP        | Cooley-Tukey   | 64bit double | Bit-reversal in-place radix-2 |
+| ard-ocl      | GPU               | Cooley-Tukey   | 64bit double | Slow bit-reversal, fft lookup |
+| bit-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fft lookup   |
+| flk-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fast lookup  |
+| flk-ocl-fp32 | GPU               | Cooley-Tukey   | 32bit float  | 2D bit-reversal, fast lookup  |
 
 #### Dependencies
 
