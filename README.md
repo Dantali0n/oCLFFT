@@ -5,6 +5,8 @@ Project for University of Amsterdam (UvA) performance engineering course,
 boilerplate CMake files are from
 [a previous project](https://github.com/hexoxide/O2-Balancer2)
 
+![Performance results on Ryzen 5900X & Radeon 5700XT](measurements/results-march-2024.png)
+
 ### Directory structure
 
 * cmake - small cmake snippets to enable various features
@@ -23,16 +25,17 @@ boilerplate CMake files are from
 
 ### Implementations
 
-| Executable   | Hardware Target   | Base Algorithm | Precision    | Properties                    |
-|--------------|-------------------|----------------|--------------|-------------------------------|
-| ard-seq      | CPU Single Thread | Cooley-Tukey   | 64bit double | Bit-reversal in-place radix-2 |
-| dft-seq      | CPU Single Thread | DFT            | 64bit double |                               |
-| dft-seq-fp32 | CPU Single Thread | DFT            | 32bit float  |                               |
-| ard-omp      | CPU OpenMP        | Cooley-Tukey   | 64bit double | Bit-reversal in-place radix-2 |
-| ard-ocl      | GPU               | Cooley-Tukey   | 64bit double | Slow bit-reversal, fft lookup |
-| bit-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fft lookup   |
-| flk-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fast lookup  |
-| flk-ocl-fp32 | GPU               | Cooley-Tukey   | 32bit float  | 2D bit-reversal, fast lookup  |
+| Executable   | Hardware Target   | Base Algorithm | Precision    | Properties                                           |
+|--------------|-------------------|----------------|--------------|------------------------------------------------------|
+| ard-seq      | CPU Single Thread | Cooley-Tukey   | 64bit double | Bit-reversal in-place radix-2                        |
+| dft-seq      | CPU Single Thread | DFT            | 64bit double |                                                      |
+| dft-seq-fp32 | CPU Single Thread | DFT            | 32bit float  |                                                      |
+| ard-omp      | CPU OpenMP        | Cooley-Tukey   | 64bit double | Bit-reversal in-place radix-2                        |
+| ard-ocl      | GPU               | Cooley-Tukey   | 64bit double | Slow bit-reversal, fft lookup                        |
+| bit-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fft lookup                          |
+| flk-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fast lookup                         |
+| flk-ocl-fp32 | GPU               | Cooley-Tukey   | 32bit float  | 2D bit-reversal, fast lookup, optimized local groups |
+| plc-ocl-fp32 | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fast lookup, optimized local groups |
 
 #### Dependencies
 
