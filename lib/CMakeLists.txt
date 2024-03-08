@@ -22,11 +22,12 @@ find_package(
     REQUIRED
 )
 
-find_package(FFTW REQUIRED)
+find_package(FFTW REQUIRED COMPONENTS DOUBLE_THREADS_LIB)
 
 set(${PRJ_LIB}_LIBRARIES
     Boost::program_options
     ${FFTW_LIBRARIES}
+    ${FFTW_DOUBLE_THREADS_LIB}
 )
 
 set(LIB_${PRJ_LIB}_SRC

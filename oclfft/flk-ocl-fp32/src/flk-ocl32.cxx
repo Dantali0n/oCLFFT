@@ -182,12 +182,12 @@ void FlkOCL32::reverse() {
 	// use block_x as first index as hope to optimize for column major accesses,
 	// OpenCL will need to place block_y in same wavefronts. If performance
 	// very bad swap x and y, don't forget to swap in kernel as well.
-    auto begin = std::chrono::high_resolution_clock::now();
-	if(this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NDRange(2, this->wavefront_size)) != CL_SUCCESS) {
+//    auto begin = std::chrono::high_resolution_clock::now();
+	if(this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NDRange(1, this->wavefront_size)) != CL_SUCCESS) {
         std::cerr << "Failed to enqueue bit_column" << std::endl;
     }
 //    this->cl_queue.finish();
-    auto end = std::chrono::high_resolution_clock::now();
+//    auto end = std::chrono::high_resolution_clock::now();
 //    std::cout << "Bit column: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
 	// step 2, matrix transpose
@@ -201,12 +201,12 @@ void FlkOCL32::reverse() {
 	kernel_trans.setArg(2, this->cl_buffer_c);
 	kernel_trans.setArg(3, this->cl_buffer_r);
 
-    begin = std::chrono::high_resolution_clock::now();
+//    begin = std::chrono::high_resolution_clock::now();
     if(this->cl_queue.enqueueNDRangeKernel(kernel_trans, cl::NullRange, cl::NDRange(height, width), cl::NDRange(16, 16)) != CL_SUCCESS) {
         std::cerr << "Failed to enqueue transpose R" << std::endl;
     }
 //    this->cl_queue.finish();
-    end = std::chrono::high_resolution_clock::now();
+//    end = std::chrono::high_resolution_clock::now();
 //    std::cout << "transpose R: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
     if(this->cl_queue.enqueueCopyBuffer(this->cl_buffer_i, this->cl_buffer_c, 0, 0, this->data_size) != CL_SUCCESS) {
@@ -214,21 +214,21 @@ void FlkOCL32::reverse() {
     }
 
 	kernel_trans.setArg(3, this->cl_buffer_i);
-    begin = std::chrono::high_resolution_clock::now();
+//    begin = std::chrono::high_resolution_clock::now();
 	if(this->cl_queue.enqueueNDRangeKernel(kernel_trans, cl::NullRange, cl::NDRange(height, width), cl::NDRange(16, 16)) != CL_SUCCESS) {
         std::cerr << "Failed to enqueue transpose I" << std::endl;
     }
 //    this->cl_queue.finish();
-    end = std::chrono::high_resolution_clock::now();
+//    end = std::chrono::high_resolution_clock::now();
 //    std::cout << "transpose I: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
 	// step 3, repeat column swap
-    begin = std::chrono::high_resolution_clock::now();
-	if(this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NDRange(2, this->wavefront_size))!= CL_SUCCESS) {
+//    begin = std::chrono::high_resolution_clock::now();
+	if(this->cl_queue.enqueueNDRangeKernel(kernel_col, cl::NullRange, cl::NDRange(block_x, block_y), cl::NDRange(1, this->wavefront_size))!= CL_SUCCESS) {
         std::cerr << "Failed to enqueue bit_column" << std::endl;
     }
 //    this->cl_queue.finish();
-    end = std::chrono::high_resolution_clock::now();
+//    end = std::chrono::high_resolution_clock::now();
 //    std::cout << "Bit column: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
     if(this->cl_queue.finish() != CL_SUCCESS) {

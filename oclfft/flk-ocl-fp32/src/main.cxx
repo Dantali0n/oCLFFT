@@ -35,12 +35,12 @@ int main(int argc, char* argv[]) {
     parse_file(opts.file.get(), &data, opts.samples);
     auto copy = data;
 
-    if(!isPowerOfTwo(opts.wavefront)) {
-        std::cerr << "Wavefront must be 1 or power of 2" << std::endl;
+    if(!isPowerOfTwo(opts.wavefront) || !isPowerOfTwo(data.size())) {
+        std::cerr << "Wavefront and samples must be 1 or power of 2" << std::endl;
         exit(1);
     }
 
-    if(opts.wavefront > 128) {
+    if(opts.wavefront > 256) {
         std::cerr << "Wavefront can be maximum of 128" << std::endl;
         exit(1);
     }

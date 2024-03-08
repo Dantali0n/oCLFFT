@@ -59,7 +59,7 @@ void kernel window(global float *real, global float *imag, ulong size, const ulo
 }
 
 void kernel bit_column(global float *real, global float *imag, const global uint *lookup, const ulong height, const ulong wavefront) {
-    const size_t x = get_group_id(0) * 2 + get_local_id(0) + 1;
+    const size_t x = get_group_id(0) * 1 + get_local_id(0) + 1;
     const size_t y = get_group_id(1) * wavefront + get_local_id(1);
 
 //    printf("[%lu][%lu]\n", x, y);
