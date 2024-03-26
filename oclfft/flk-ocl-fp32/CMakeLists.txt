@@ -16,9 +16,6 @@
 
 project(flk-ocl-fp32)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 set(${PRJ_PRX}_IMPL_LIBRARIES
     ${PRJ_LIB}
 )
@@ -49,6 +46,9 @@ set(FLK_OCL_HEADERS
 
 message("${PRJ_PRX}: Fast-Lookup OpenCL cxx flags:${CMAKE_CXX_FLAGS}")
 add_executable(flk-ocl-fp32 ${FLK_OCL_SOURCE} ${FLK_OCL_HEADERS})
+
+target_include_directories(flk-ocl-fp32 PRIVATE ${CMAKE_SOURCE_DIR}/lib/include)
+target_include_directories(flk-ocl-fp32 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
     ${${PRJ_PRX}_LIBRARIES}

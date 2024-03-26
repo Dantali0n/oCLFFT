@@ -1,5 +1,5 @@
 # oCLFFT
-# Copyright (C) 2021 Corne Lukken
+# Copyright (C) 2024 Corne Lukken
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,37 +14,44 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.9)
-project(ard-omp)
+project(rms-error)
 
-find_package(OpenMP REQUIRED)
+find_package(MPFR REQUIRED)
+
+find_package(
+    Boost 1.32 COMPONENTS
+    program_options
+    REQUIRED
+)
+
+find_package(FFTW REQUIRED)
 
 set(${PRJ_PRX}_IMPL_LIBRARIES
-    OpenMP::OpenMP_CXX
-    ${PRJ_LIB}
+    Boost::program_options
+    ${MPFR_LIBRARIES}
+    ${FFTW_LIBRARIES}
 )
 
-set(ARD_OMP_SOURCE
+set(RMS_ERROR_SOURCE
+    src/apfft.cxx
     src/main.cxx
-    src/ard-omp.cxx
+    src/parsing.cxx
 )
 
-set(ARD_OMP_HEADERS
-    include/ard-omp.hpp
+set(RMS_ERROR_HEADERS
+    include/apfft.hpp
+    include/defaults.hpp
+    include/main.hpp
+    include/options.hpp
+    include/parsing.hpp
 )
 
-message("${PRJ_PRX}: DFT openmp cxx flags:${CMAKE_CXX_FLAGS}")
-add_executable(ard-omp ${ARD_OMP_SOURCE} ${ARD_OMP_HEADERS})
+message("${PRJ_PRX}: RMS error cxx flags:${CMAKE_CXX_FLAGS}")
+add_executable(rms-error ${RMS_ERROR_SOURCE} ${RMS_ERROR_HEADERS})
 
-target_include_directories(ard-omp PRIVATE ${CMAKE_SOURCE_DIR}/lib/include)
-target_include_directories(ard-omp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
-    ${${PRJ_PRX}_LIBRARIES}
-    ${${PRJ_PRX}_IMPL_LIBRARIES}
-)
+target_include_directories(rms-error PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(
-    ard-omp
-    ${${PRJ_PRX}_IMPL_LIBRARIES_PACK}
+    rms-error
+    ${${PRJ_PRX}_IMPL_LIBRARIES}
 )

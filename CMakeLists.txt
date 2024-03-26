@@ -46,7 +46,7 @@ OPTION(ENABLE_CODECOV "Measure code coverage" OFF)
 OPTION(ENABLE_DOXYGEN "Generate documentation" OFF)
 OPTION(ENABLE_CI "Enable continuous integration" OFF)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib/include)
+#include_directories(${CMAKE_SOURCE_DIR}/lib/include)
 
 # Required packages
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)

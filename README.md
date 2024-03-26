@@ -28,6 +28,7 @@ boilerplate CMake files are from
 | Executable   | Hardware Target   | Base Algorithm | Precision    | Properties                                           |
 |--------------|-------------------|----------------|--------------|------------------------------------------------------|
 | ard-seq      | CPU Single Thread | Cooley-Tukey   | 64bit double | Bit-reversal in-place radix-2                        |
+| ap-seq       | CPU Single Thread | Cooley-Tukey   | arbitrary    | Bit-reversal in-place radix-2                        |
 | dft-seq      | CPU Single Thread | DFT            | 64bit double |                                                      |
 | dft-seq-fp32 | CPU Single Thread | DFT            | 32bit float  |                                                      |
 | ard-omp      | CPU OpenMP        | Cooley-Tukey   | 64bit double | Bit-reversal in-place radix-2                        |
@@ -35,15 +36,19 @@ boilerplate CMake files are from
 | bit-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fft lookup                          |
 | flk-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fast lookup                         |
 | flk-ocl-fp32 | GPU               | Cooley-Tukey   | 32bit float  | 2D bit-reversal, fast lookup, optimized local groups |
-| plc-ocl-fp32 | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fast lookup, optimized local groups |
+| plc-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fast lookup, optimized local groups |
 
 #### Dependencies
 
 * cmake 3.0 or higher
 * cmake 3.9 or higher (ard-omp)
-* doxygen (documentation)
 * boost 1.32 or higher
 * boost 1.53 or higher (unit tests)
+* OpenCL 2.0 or higher
+* OpenCL C++ headers
+* MPFR
+* MPFR C++, MPREAL (rms-error)
+* doxygen (documentation)
 * python 3.x (python)
 * virtualenv (python)
 
@@ -68,6 +73,8 @@ make play-lookup
 ./playground/play-lookup > ../oclfft/ard-ocl/src/lookup.cl
 ./playground/play-lookup > ../oclfft/bit-ocl/src/lookup.cl
 ./playground/play-lookup > ../oclfft/flk-ocl/src/lookup.cl
+make play-lookup-fp32
+./playground/play-lookup-fp32 > ../oclfft/flk-ocl-fp32/src/lookup.cl
 ```
 
 #### Licensing
@@ -87,6 +94,11 @@ A few examples of files licensed under different authors:
 * [Emebedding source files into binaries](https://www.linuxjournal.com/content/embedding-file-executable-aka-hello-world-version-5967)
 * [OpenCL, SyCL and SPIR-V progress 2016](https://www.youtube.com/watch?v=TYp1d6yzHUQ)
 * [RDNA whitepaper](https://www.amd.com/system/files/documents/rdna-whitepaper.pdf)
+* Arbitrary Precision Arithmetic (FFTs)
+  * [Python Arbitrary Precision FFT](https://github.com/dbstein/apfft/tree/master)
+  * [C++ Arbitrary Precision Arithmetic](https://github.com/anxieuse/Arbitrary-precision-arithmetic/tree/main)
+  * [BenchFFT](https://fftw.org/benchfft/)
+  * [RRMSE](https://stats.stackexchange.com/questions/413209/is-there-something-like-a-root-mean-square-relative-error-rmsre-or-what-is-t#413217)
 
 #### Snippets
 

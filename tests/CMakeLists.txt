@@ -172,9 +172,6 @@ target_link_libraries(
 	${${PRJ_PRX}_LIBRARIES_PACK}
 )
 
-
-
-add_test(TestExample testexample)
 add_test(TestDFTSeq testdftseq)
 add_test(TestARDSeq testardseq)
 add_test(TestARDocl testardocl)

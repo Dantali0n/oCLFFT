@@ -22,12 +22,11 @@ find_package(
     REQUIRED
 )
 
-find_package(FFTW REQUIRED COMPONENTS DOUBLE_THREADS_LIB)
+find_package(FFTW REQUIRED)
 
 set(${PRJ_LIB}_LIBRARIES
     Boost::program_options
     ${FFTW_LIBRARIES}
-    ${FFTW_DOUBLE_THREADS_LIB}
 )
 
 set(LIB_${PRJ_LIB}_SRC
@@ -42,12 +41,14 @@ set(LIB_${PRJ_LIB}_HEADERS.
     include/results.hpp
 )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(
     ${PRJ_LIB} SHARED
     ${LIB_${PRJ_LIB}_SRC}
     ${LIB_${PRJ_LIB}_HEADERS}
 )
+
+target_include_directories(${PRJ_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 set_target_properties(${PRJ_LIB} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(
     ${PRJ_LIB}

@@ -186,9 +186,6 @@ void generate_output(std::vector<std::complex<double>> *result,
     fw_in = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * num_samples);
     fw_out = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * num_samples);
 
-    fftw_init_threads();
-    fftw_plan_with_nthreads(24);
-
     for(uint32_t i = 0; i < results->copy_device_to_host.size(); i++) {
         std::cout << results->copy_host_to_device[i] << "," << results->window[i]
             << "," << results->reverse[i] << "," << results->fft[i] << ","
@@ -252,9 +249,6 @@ void generate_output(std::vector<std::complex<double>> *result,
 	fw_in = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * num_samples);
 	fw_out = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * num_samples);
 
-    fftw_init_threads();
-    fftw_plan_with_nthreads(24);
-
 	auto begin = std::chrono::high_resolution_clock::now();
 	window_nuttall(original);
 	auto end = std::chrono::high_resolution_clock::now();
@@ -307,7 +301,7 @@ void generate_output(
 	fftw_complex *data_ref, std::vector<std::complex<double>> *data_tar,
 	size_t n, bool imaginary
 ) {
-	std::cout.precision(oclfft::db_lim::digits10);
+	std::cout.precision(oclfft::db_lim::digits);
 	std::cout << "fftw" << std::endl;
 	for (size_t i = 0; i < n >> 0; i++) {
 		if (imaginary)

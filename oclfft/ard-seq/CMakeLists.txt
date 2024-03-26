@@ -16,8 +16,7 @@
 
 project(ard-seq)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 
 set(${PRJ_PRX}_IMPL_LIBRARIES
     ${PRJ_LIB}
@@ -35,6 +34,8 @@ set(ARD_SEQ_HEADERS
 message("${PRJ_PRX}: DFT sequential cxx flags:${CMAKE_CXX_FLAGS}")
 add_executable(ard-seq ${ARD_SEQ_SOURCE} ${ARD_SEQ_HEADERS})
 
+target_include_directories(ard-seq PRIVATE ${CMAKE_SOURCE_DIR}/lib/include)
+target_include_directories(ard-seq PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
     ${${PRJ_PRX}_LIBRARIES}

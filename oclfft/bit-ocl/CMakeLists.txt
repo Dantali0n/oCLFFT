@@ -16,9 +16,6 @@
 
 project(bit-ocl)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 set(${PRJ_PRX}_IMPL_LIBRARIES
     ${PRJ_LIB}
 )
@@ -49,6 +46,9 @@ set(BIT_OCL_HEADERS
 
 message("${PRJ_PRX}: Arduino OpenCL cxx flags:${CMAKE_CXX_FLAGS}")
 add_executable(bit-ocl ${BIT_OCL_SOURCE} ${BIT_OCL_HEADERS})
+
+target_include_directories(bit-ocl PRIVATE ${CMAKE_SOURCE_DIR}/lib/include)
+target_include_directories(bit-ocl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
     ${${PRJ_PRX}_LIBRARIES}

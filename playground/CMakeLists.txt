@@ -16,8 +16,6 @@
 
 project(playground)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib/include)
-
 set(${PRJ_PRX}_PLAYGROUND_LIBRARIES
     ${PRJ_LIB}
 )
@@ -33,6 +31,8 @@ set(PLAYGROUND_EXAMPLE_SOURCE
 
 message("${PRJ_PRX}: playground example cxx flags:${CMAKE_CXX_FLAGS}")
 add_executable(play-example ${PLAYGROUND_EXAMPLE_SOURCE})
+
+target_include_directories(play-example PRIVATE ${CMAKE_SOURCE_DIR}/lib/include)
 
 target_link_libraries(
     play-example
@@ -75,6 +75,18 @@ add_executable(play-lookup ${PLAYGROUND_LOOKUP_SOURCE})
 
 target_link_libraries(
     play-lookup
+    ${${PRJ_PRX}_PLAY_LIBRARIES_PACK}
+)
+
+set(PLAYGROUND_LOOKUP_FP32_SOURCE
+    clookup-fp32/clookup-fp32.cxx
+)
+
+message("${PRJ_PRX}: playground lookup-fp32 cxx flags:${CMAKE_CXX_FLAGS}")
+add_executable(play-lookup-fp32 ${PLAYGROUND_LOOKUP_FP32_SOURCE})
+
+target_link_libraries(
+    play-lookup-fp32
     ${${PRJ_PRX}_PLAY_LIBRARIES_PACK}
 )
 

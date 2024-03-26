@@ -36,6 +36,11 @@ BOOST_AUTO_TEST_SUITE(Test_ARDSeq)
 		// Generate real sine wave into data
 		double *data_r = (double *)malloc(data_size);
 		double *data_i = (double *)malloc(data_size);
+
+        for(size_t i = 0; i < n; i++) {
+            data_i[i] = 0;
+        }
+
 		generate_sinewave(data_r, n, frequency, rate);
 
 		// Create copy as arduinoFFT is an in-place implementation.
@@ -91,6 +96,11 @@ BOOST_AUTO_TEST_SUITE(Test_ARDSeq)
 		// Generate real sine wave into data
 		double *data_r = (double *)malloc(data_size);
 		double *data_i = (double *)malloc(data_size);
+
+        for(size_t i = 0; i < n; i++) {
+            data_i[i] = 0;
+        }
+
 		generate_sinewave(data_r, n, frequency, rate);
 
 		// Create copy as arduinoFFT is an in-place implementation.
@@ -150,6 +160,11 @@ BOOST_AUTO_TEST_SUITE(Test_ARDSeq)
 		// Generate real sine wave into data
 		double *data_r = (double *)malloc(data_size);
 		double *data_i = (double *)malloc(data_size);
+
+        for(size_t i = 0; i < n; i++) {
+            data_i[i] = 0;
+        }
+
 		generate_sinewave(data_r, n, frequency, rate);
 
 		double *data_r2 = (double *)malloc(data_size);
@@ -223,6 +238,11 @@ BOOST_AUTO_TEST_SUITE(Test_ARDSeq)
 		// Generate real sine wave into data
 		double *data_r = (double *)malloc(data_size);
 		double *data_i = (double *)malloc(data_size);
+
+        for(size_t i = 0; i < n; i++) {
+            data_i[i] = 0;
+        }
+
 		generate_sinewave(data_r, n, frequency, rate);
 
 		// DC bias
@@ -287,6 +307,11 @@ BOOST_AUTO_TEST_SUITE(Test_ARDSeq)
 		// Generate real sine wave into data
 		double *data_r = (double *)malloc(data_size);
 		double *data_i = (double *)malloc(data_size);
+
+        for(size_t i = 0; i < n; i++) {
+            data_i[i] = 0;
+        }
+
 		generate_sinewave(data_r, n, frequency, rate);
 
 		for(size_t i = 0; i < n; i++) {
