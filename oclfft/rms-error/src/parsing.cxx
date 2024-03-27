@@ -28,7 +28,7 @@ void parse_args(int argc, char* argv[], options *option) {
 		("help,h", "Produce help message")
 		("samples,s", po::value<size_t>(&option->samples)->default_value(DEFAULT_SAMPLES), "Set number of samples")
         ("precision,p", po::value<size_t>(&option->precision)->default_value(DEFAULT_PRECISION), "Set precision in number of digits")
-        ("scale,s", po::value<float>(&option->scale)->default_value(DEFAULT_SCALE), "Set random noise scale");
+        ("scale,f", po::value<float>(&option->scale)->default_value(DEFAULT_SCALE), "Set random noise scale");
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 	po::notify(vm);

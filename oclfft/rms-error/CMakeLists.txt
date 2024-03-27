@@ -36,6 +36,7 @@ set(RMS_ERROR_SOURCE
     src/apfft.cxx
     src/main.cxx
     src/parsing.cxx
+    src/rng.cxx
 )
 
 set(RMS_ERROR_HEADERS

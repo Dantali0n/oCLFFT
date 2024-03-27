@@ -21,28 +21,41 @@
 
 #include "parsing.hpp"
 #include "options.hpp"
+#include "apfft.hpp"
+#include "rng.hpp"
 
 using mpfr::mpreal;
 
 int main(int argc, char* argv[]) {
+    apfft_data data;
     struct options opts{};
-
     parse_args(argc, argv, &opts);
 
     // Setup default precision for all subsequent computations
     // MPFR accepts precision in bits - so we do the conversion
     mpreal::set_default_prec(mpfr::digits2bits(opts.precision));
+    std::cout.precision(opts.precision);
 
-    mpreal test = mpfr::const_pi();
+    MPRealRNG rng(opts.scale, opts.precision);
+
+
+    for(size_t i = 0; i < opts.samples; i++) {
+
+    }
+
+//    APFFT fft();
 
     std::cout << "\t oCLFFT relative RMS error calculator:" << std::endl;
     std::cout << "  Samples: " << opts.samples << std::endl;
     std::cout << "Precision: " << opts.precision << std::endl;
     std::cout << "    Scale: " << opts.scale << std::endl;
 
-    std::cout.precision(opts.precision);
-    std::cout << "pi         =    "<<    test            << std::endl;
-    std::cout << "pi*2       =    "<<    test*2          << std::endl;
+    for(size_t i = 0; i < 100; i++) {
+        std::cout << "rng: " << rng.generate() << std::endl;
+    }
+
+//    std::cout << "pi         =    "<<    test            << std::endl;
+//    std::cout << "pi*2       =    "<<    test*2          << std::endl;
 
 //    // Compute all the vital characteristics of mpreal (in current precision)
 //    // Analogous to lamch from LAPACK

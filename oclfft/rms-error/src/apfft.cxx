@@ -19,8 +19,8 @@
 #include "apfft.hpp"
 
 APFFT::APFFT(apfft_data *real, apfft_data *imag) {
-    this->real = real;
-    this->imag = imag;
+    this->real = *real;
+    this->imag = *imag;
     this->samples = real->size();
 
     this->exponent = 0;
@@ -36,8 +36,9 @@ void APFFT::synchronize() {
 }
 
 void APFFT::window() {
-    std::vector<mpfr::mpreal> reals = *this->real;
-    std::vector<mpfr::mpreal> imags = *this->imag;
+    std::vector<mpfr::mpreal> reals = this->real;
+    std::vector<mpfr::mpreal> imags = this->imag;
+
     mpfr::mpreal samplesMinusOne = (mpfr::mpreal(samples) - 1.0);
     for (uint32_t i = 0; i < (samples >> 1); i++) {
         mpfr::mpreal indexMinusOne = mpfr::mpreal(i);
@@ -49,8 +50,8 @@ void APFFT::window() {
 }
 
 void APFFT::compute() {
-    std::vector<mpfr::mpreal> reals = *this->real;
-    std::vector<mpfr::mpreal> imags = *this->imag;
+    std::vector<mpfr::mpreal> reals = this->real;
+    std::vector<mpfr::mpreal> imags = this->imag;
     // reorder //
     uint32_t j = 0;
     for (uint32_t i = 0; i < (samples - 1); i++) {
@@ -98,7 +99,7 @@ void APFFT::compute() {
 }
 
 void APFFT::magnitude() {
-
+//    real[i] = sqrt((real[i] * real[i]) + (imag[i] * imag[i]));
 }
 
 void APFFT::Swap(mpfr::mpreal *x, mpfr::mpreal *y) {

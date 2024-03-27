@@ -16,37 +16,27 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef APFFT_H
-#define APFFT_H
+#ifndef RNG_H
+#define RNG_H
 
-#include <vector>
+#include <cstddef>
+#include <random>
 #include <mpreal.h>
+#include <stdexcept>
 
-typedef std::vector<mpfr::mpreal> apfft_data;
-
-class APFFT {
+class MPRealRNG {
 public:
-    APFFT(apfft_data *real, apfft_data *imag);
-    void push();
-    void synchronize();
-    void window();
-    void compute();
-    void magnitude();
+    MPRealRNG(float scale, size_t precision);
+    mpfr::mpreal generate();
+    size_t digitsPerRound();
 protected:
-    const mpfr::mpreal TWO_PI = 2 * mpfr::const_pi();
-    const mpfr::mpreal FOUR_PI = 4 * mpfr::const_pi();
-    const mpfr::mpreal SIX_PI = 6 * mpfr::const_pi();
+    std::uniform_int_distribution<size_t> uniform;
+    std::mt19937 gen;
+    float scale;
+    size_t precision;
+    size_t digits;
 
-    template <class T> T sq(T x) {
-        return x * x;
-    }
-
-    void Swap(mpfr::mpreal *x, mpfr::mpreal *y);
-
-    size_t samples;
-    size_t exponent;
-    apfft_data real;
-    apfft_data imag;
+    mpfr::mpreal round();
 };
 
-#endif // APFFT_H
+#endif // RNG_H
