@@ -59,7 +59,6 @@ target_link_libraries(
     ard-ocl
     ${${PRJ_PRX}_IMPL_LIBRARIES_PACK}
 )
-target_link_options(ard-ocl PRIVATE "-z noexecstack")
 
 # remove the objcopy source file after compilation so it always gets recompiled
 add_custom_command(TARGET ard-ocl
