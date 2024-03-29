@@ -1,23 +1,62 @@
+image: $CI_REGISTRY_IMAGE/ci-build-runner:$CI_COMMIT_REF_SLUG
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
 stages:
+  - prepare
   - build-lib
   - build
   - test
-build-library:
-  stage: build-lib
-  script:
-    - cd $CI_PROJECT_DIR
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+default:
+  before_script:
     - mkdir -p build
     - cd build || exit
+  cache:
+    paths:
+      - "build/*"
+
+trigger-prepare:
+  stage: prepare
+  trigger:
+    strategy: depend
+    include: .prepare.gitlab-ci.yml
+
+build-library:
+  stage: build-lib
+  needs:
+    - trigger-prepare
+  script:
     - cmake ..
     - make oCLFFTsup -j $(nproc)
   artifacts:
     paths:
       - build/lib/liboCLFFTsup.so
-  cache:
+
+build-lookup:
+  stage: build-lib
+  needs:
+    - trigger-prepare
+  script:
+    - cmake ..
+    - make play-lookup play-lookup-fp32
+    - ./playground/play-lookup > ../oclfft/ard-ocl/src/lookup.cl
+    - ./playground/play-lookup > ../oclfft/bit-ocl/src/lookup.cl
+    - ./playground/play-lookup > ../oclfft/flk-ocl/src/lookup.cl
+    - ./playground/play-lookup-fp32 > ../oclfft/flk-ocl-fp32/src/lookup.cl
+  artifacts:
     paths:
-      - "build/*"
+      - oclfft/**/lookup.cl
+
 build-documents:
   stage: build
+  needs:
+    - trigger-prepare
   script:
     - cd $CI_PROJECT_DIR/proposal || exit
     - texi2pdf proposal.tex
@@ -26,40 +65,47 @@ build-documents:
   artifacts:
     paths:
       - "*/*.pdf"
+
 build-documentation:
   stage: build
+  needs:
+    - trigger-prepare
   script:
-    - cd $CI_PROJECT_DIR
-    - mkdir -p build
-    - cd build || exit
     - cmake -DENABLE_DOXYGEN=on ..
     - make doxygen
   artifacts:
     paths:
       - "docs/*"
+
 build-binaries:
   stage: build
+  needs:
+    - trigger-prepare
+    - build-lookup
+    - build-library
   script:
-    - cd $CI_PROJECT_DIR || exit
-    - mkdir -p build
-    - cd build || exit
     - cmake -DENABLE_DOXYGEN=off ..
-    - make -j $(nproc)
+    - make ard-ocl
+    - make ard-omp
+    - make ard-seq
+    - make bit-ocl
+    - make dft-seq
+    - make dft-seq-fp32
+    - make flk-ocl
+    - make flk-ocl-fp32
+    - make rms-error
+    - make play-objcopy
+    - make play-example
+    - make play-reversegen
   artifacts:
     paths:
       - "*/**/play-objcopy"
       - "*/**/play-example"
-      - "*/**/testexample"
-  cache:
-    paths:
-      - "build/*"
+
 test:
   stage: test
+  needs:
+    - trigger-prepare
+    - build-binaries
   script:
-    - cd $CI_PROJECT_DIR || exit
-    - mkdir -p build
-    - cd build || exit
     - make test
-  cache:
-    paths:
-      - "build/*"
