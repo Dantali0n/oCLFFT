@@ -107,5 +107,7 @@ test:
   needs:
     - trigger-prepare
     - build-binaries
+  variables:
+    CTEST_OUTPUT_ON_FAILURE: 1
   script:
     - make test
