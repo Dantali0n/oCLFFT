@@ -7,6 +7,7 @@ stages:
   - build-lib
   - build
   - test
+  - release
 
 include:
   - template: Security/SAST.gitlab-ci.yml
@@ -26,6 +27,18 @@ trigger-prepare:
   trigger:
     strategy: depend
     include: .prepare.gitlab-ci.yml
+
+prepare-release:
+  stage: prepare
+  image: alpine:latest
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
+  script:
+    - apk add curl jq
+    - 'curl -H "PRIVATE-TOKEN: $CI_API_TOKEN" "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/changelog?version=$CI_COMMIT_TAG" | jq -r .notes > release_notes.md'
+  artifacts:
+    paths:
+      - release_notes.md
 
 build-library:
   stage: build-lib
@@ -111,3 +124,20 @@ test:
     CTEST_OUTPUT_ON_FAILURE: 1
   script:
     - make test
+
+release_job:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  environment: gitlab-releases
+  needs:
+    - job: prepare-release
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
+  script:
+    - echo "Creating release ${CI_COMMIT_TAG}"
+  release:
+    name: '${CI_COMMIT_TAG}'
+    description: release_notes.md
+    tag_name: '${CI_COMMIT_TAG}'
+    ref: '$CI_COMMIT_SHA'
