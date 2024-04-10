@@ -33,8 +33,9 @@ prepare-release:
   image: alpine:latest
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
-  script:
+  before_script:
     - apk add curl jq
+  script:
     - 'curl -H "PRIVATE-TOKEN: $CI_API_TOKEN" "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/changelog?version=$CI_COMMIT_TAG" | jq -r .notes > release_notes.md'
     - cat release_noted.md
   artifacts:
@@ -135,8 +136,10 @@ release_job:
       artifacts: true
   rules:
     - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
-  script:
+  before_script:
     - echo "Creating release ${CI_COMMIT_TAG}"
+  script:
+    - cat release_noted.md
   release:
     name: '${CI_COMMIT_TAG}'
     description: release_notes.md
