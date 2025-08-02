@@ -1,4 +1,4 @@
-copy_host_to_device, window, bit_reverse, fft, magnititude, copy_device_to_host, total
+copy_host_to_device, window, bit_reverse, fft, magnititude, copy_device_to_host,total
 2478,493,22545,4335,292,1475,0.031326
 1563,478,22854,4321,292,1600,0.030816
 1845,492,22559,4317,292,1529,0.030742
