@@ -17,7 +17,7 @@
 project(${PRJ_LIB})
 
 find_package(
-    Boost 1.32 COMPONENTS
+    Boost 1.32 CONFIG COMPONENTS
     program_options
     REQUIRED
 )
