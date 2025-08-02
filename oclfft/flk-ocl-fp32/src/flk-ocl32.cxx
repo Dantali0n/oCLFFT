@@ -30,6 +30,12 @@ FlkOCL32::FlkOCL32(
 	this->real = (float*) malloc(this->data_size);
 	this->imag = (float*) malloc(this->data_size);
 
+	// Go as fast as possible
+	if (opts.output == oclfft::OUT_NONE)
+	{
+		this->queue_synchronise = false;
+	}
+
 	std::vector<cl::Platform> all_platforms;
 	cl::Platform::get(&all_platforms);
 	if(all_platforms.size() == 0) {
@@ -153,7 +159,10 @@ void FlkOCL32::window() {
 	if(this->cl_queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(this->size>>1), cl::NDRange(this->wavefront_size)) != CL_SUCCESS) {
         std::cerr << "Failed to enqueue window" << std::endl;
     }
-	this->cl_queue.finish();
+
+	if(queue_synchronise && this->cl_queue.finish() != CL_SUCCESS) {
+		std::cerr << "Failed to finish window queue" << std::endl;
+	}
 }
 
 void FlkOCL32::reverse() {
@@ -231,7 +240,7 @@ void FlkOCL32::reverse() {
 //    end = std::chrono::high_resolution_clock::now();
 //    std::cout << "Bit column: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
-    if(this->cl_queue.finish() != CL_SUCCESS) {
+    if(queue_synchronise && this->cl_queue.finish() != CL_SUCCESS) {
         std::cerr << "Failed to finish bit reverse queue" << std::endl;
     }
 }
@@ -270,7 +279,9 @@ void FlkOCL32::compute() {
 //        this->cl_queue.finish();
 	}
 
-	this->cl_queue.finish();
+	if(queue_synchronise && this->cl_queue.finish() != CL_SUCCESS) {
+		std::cerr << "Failed to finish compute queue" << std::endl;
+	}
 }
 
 void FlkOCL32::magnitude() {
@@ -284,7 +295,10 @@ void FlkOCL32::magnitude() {
     ) {
         std::cerr << "Failed to enqueue magnitude" << std::endl;
     }
-	this->cl_queue.finish();
+
+	if(queue_synchronise && this->cl_queue.finish() != CL_SUCCESS) {
+		std::cerr << "Failed to finish magnitude queue" << std::endl;
+	}
 }
 
 /**

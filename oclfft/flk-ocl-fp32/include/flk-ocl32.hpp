@@ -93,6 +93,8 @@ protected:
     float *imag;
 	uint32_t *lookup;
 
+	bool queue_synchronise = true;
+
 	size_t size;
 	size_t data_size;
 	size_t lookup_size;
