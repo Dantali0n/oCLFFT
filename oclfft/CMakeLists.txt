@@ -22,5 +22,8 @@ add_subdirectory(flk-ocl)
 # Fast Fourier Transform Fast-Lookup 32 bit float
 add_subdirectory(flk-ocl-fp32)
 
+# Fast Fourier Transform using hipFFT
+add_subdirectory(hip-fft)
+
 # RMS error quantification
 add_subdirectory(rms-error)

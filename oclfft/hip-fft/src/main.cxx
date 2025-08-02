@@ -1,0 +1,64 @@
+/*
+	oCLFFT
+	Copyright (C) 2025 Corne Lukken
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "hip-fft.hpp"
+#include "results.hpp"
+
+int main(int argc, char* argv[]) {
+    auto data = std::vector<std::complex<double>>();
+    auto results = Results();
+    oclfft::options opts{};
+
+	parse_args(argc, argv, &opts);
+    parse_file(opts.file.get(), &data, opts.samples);
+    auto copy = data;
+
+    std::cout << "Samples: " << data.size() << std::endl;
+    std::cout << "Iterations: " << opts.iterations << std::endl;
+
+    auto hipfft = HipFFT(&data, opts, &results);
+    for(size_t i = 0; i < opts.iterations; i++) {
+
+        data.clear();
+        parse_file(opts.file.get(), &data, opts.samples);
+
+        hipfft.push();
+
+        auto begin = std::chrono::high_resolution_clock::now();
+        hipfft.window();
+        auto end = std::chrono::high_resolution_clock::now();
+        results.window.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
+
+    	results.reverse.push_back(0);
+
+        begin = std::chrono::high_resolution_clock::now();
+        hipfft.compute();
+        end = std::chrono::high_resolution_clock::now();
+        results.fft.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
+
+        begin = std::chrono::high_resolution_clock::now();
+        hipfft.magnitude();
+        end = std::chrono::high_resolution_clock::now();
+        results.magnitude.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
+
+        hipfft.synchronize();
+    }
+
+	if(opts.output != oclfft::OUT_NONE)
+        generate_output(&data, &copy, &results, opts.output);
+}
