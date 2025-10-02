@@ -40,8 +40,7 @@ boilerplate CMake files are from
 
 #### Dependencies
 
-* cmake 3.0 or higher
-* cmake 3.9 or higher (ard-omp)
+* cmake 3.10 or higher
 * boost 1.32 or higher
 * boost 1.53 or higher (unit tests)
 * OpenCL 2.0 or higher
@@ -107,5 +106,7 @@ A few examples of files licensed under different authors:
 ```
 
 ```bash
- /opt/rocm/bin/rocprof --obj-tracking on --hsa-trace binary
+/opt/rocm/bin/rocprofv3 --obj-tracking on --hsa-trace binary
+rocprofv2 --sys-trace --kernel-trace --plugin perfetto -o results.json binary
+rocprofv3 -r -s --output-format pftrace -i ../counters.txt -- oclfft/flk-ocl-fp32/flk-ocl-fp32 -w 256 -f ../csv/lofar-20m-x.csv -s 4194304 -o TIME
 ```
