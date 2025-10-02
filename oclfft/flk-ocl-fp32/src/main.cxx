@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     }
 
     if(opts.wavefront > 256) {
-        std::cerr << "Wavefront can be maximum of 128" << std::endl;
+        std::cerr << "Wavefront can be maximum of 256" << std::endl;
         exit(1);
     }
 

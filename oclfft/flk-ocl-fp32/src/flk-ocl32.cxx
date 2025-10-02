@@ -65,7 +65,7 @@ FlkOCL32::FlkOCL32(
     auto begin = std::chrono::high_resolution_clock::now();
 	this->cl_context = cl::Context({this->cl_device});
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Create context: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+    std::cout << "Create context: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " ms" << std::endl;
 
 	cl::Program::Sources sources;
 	sources.push_back({&_binary_lookup_cl_start, static_cast<cl::size_type>((&_binary_lookup_cl_end - &_binary_lookup_cl_start))});
@@ -78,7 +78,7 @@ FlkOCL32::FlkOCL32(
 		exit(1);
 	}
     end = std::chrono::high_resolution_clock::now();
-    std::cout << "Compile sources: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+    std::cout << "Compile sources: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " ms" << std::endl;
 
     begin = std::chrono::high_resolution_clock::now();
 	this->cl_buffer_r = cl::Buffer(this->cl_context, CL_MEM_READ_WRITE, this->data_size);
@@ -110,7 +110,7 @@ FlkOCL32::FlkOCL32(
 
 	this->cl_buffer_l = cl::Buffer(this->cl_context, CL_MEM_READ_ONLY, this->lookup_size);
     end = std::chrono::high_resolution_clock::now();
-    std::cout << "Create buffers: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+    std::cout << "Create buffers: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " ms" << std::endl;
 
     this->cl_queue.enqueueWriteBuffer(this->cl_buffer_l, CL_TRUE, 0, this->lookup_size, this->lookup);
 
@@ -266,9 +266,10 @@ void FlkOCL32::compute() {
         kernel.setArg(7, cl_size_t, &local_x);
         kernel.setArg(8, cl_size_t, &local_y);
 
-//        std::cout << "pow:[" << i << "][" << L[i] << "," << this->size/L[i + 1] << "]"
-//                  << "[" << local_x << "," << local_y << "]" << std::endl;
+        std::cout << "pow:[" << i << "][" << L[i] << "," << this->size/L[i + 1] << "]"
+                  << "[" << local_x << "," << local_y << "]" << std::endl;
 
+		// We can still some of the global range and make the local range larger.
         if(this->cl_queue.enqueueNDRangeKernel(
 			kernel, cl::NullRange,cl::NDRange(L[i], this->size/L[i + 1]),
 			cl::NDRange(local_x, local_y)
