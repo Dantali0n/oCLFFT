@@ -89,8 +89,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -O0")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
 	message("${PRJ_PRX}: Enabling extensive optimizations")
-	set(CMAKE_CXX_FLAGS 
-		"${CMAKE_CXX_FLAGS} -Ofast -ffast-math -ftree-vectorize")
+#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Ofast -ffast-math -ftree-vectorize")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -O3 -ftree-vectorize")
 endif()
 
 # Commonly shared library

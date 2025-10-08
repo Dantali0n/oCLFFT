@@ -28,7 +28,6 @@ boilerplate CMake files are from
 | Executable   | Hardware Target   | Base Algorithm | Precision    | Properties                                           |
 |--------------|-------------------|----------------|--------------|------------------------------------------------------|
 | ard-seq      | CPU Single Thread | Cooley-Tukey   | 64bit double | Bit-reversal in-place radix-2                        |
-| ap-seq       | CPU Single Thread | Cooley-Tukey   | arbitrary    | Bit-reversal in-place radix-2                        |
 | dft-seq      | CPU Single Thread | DFT            | 64bit double |                                                      |
 | dft-seq-fp32 | CPU Single Thread | DFT            | 32bit float  |                                                      |
 | ard-omp      | CPU OpenMP        | Cooley-Tukey   | 64bit double | Bit-reversal in-place radix-2                        |
@@ -36,7 +35,6 @@ boilerplate CMake files are from
 | bit-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fft lookup                          |
 | flk-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fast lookup                         |
 | flk-ocl-fp32 | GPU               | Cooley-Tukey   | 32bit float  | 2D bit-reversal, fast lookup, optimized local groups |
-| plc-ocl      | GPU               | Cooley-Tukey   | 64bit double | 2D bit-reversal, fast lookup, optimized local groups |
 
 #### Dependencies
 
@@ -53,10 +51,17 @@ boilerplate CMake files are from
 
 #### Setup
 
+Initialize lfs:
+
+```bash
+git lfs install
+git lfs checkout
+```
+
 Python environment:
 
 ```bash
-virtualenv -p python3 python/e
+virtualenv -p python3 python/
 cd python
 source bin/activate
 pip install -r requirements.txt
@@ -67,13 +72,14 @@ Generating lookup tables:
 ```bash
 mkdir build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make play-lookup
 ./playground/play-lookup > ../oclfft/ard-ocl/src/lookup.cl
 ./playground/play-lookup > ../oclfft/bit-ocl/src/lookup.cl
 ./playground/play-lookup > ../oclfft/flk-ocl/src/lookup.cl
 make play-lookup-fp32
 ./playground/play-lookup-fp32 > ../oclfft/flk-ocl-fp32/src/lookup.cl
+make
 ```
 
 #### Licensing
@@ -102,7 +108,8 @@ A few examples of files licensed under different authors:
 #### Snippets
 
 ```bash
-../cmake-build-debug/oclfft/bit-ocl/bit-ocl -f ../csv/ads-b.csv -s 262144  -o real | python evaluate-error.py
+cd python
+../cmake-build-debug/oclfft/flk-ocl-fp32/flk-ocl-fp32 -w 256 -f ../csv/lofar-20m-x.csv -s 4194304  -o real | python evaluate-error.py
 ```
 
 ```bash
@@ -110,3 +117,5 @@ A few examples of files licensed under different authors:
 rocprofv2 --sys-trace --kernel-trace --plugin perfetto -o results.json binary
 rocprofv3 -r -s --output-format pftrace -i ../counters.txt -- oclfft/flk-ocl-fp32/flk-ocl-fp32 -w 256 -f ../csv/lofar-20m-x.csv -s 4194304 -o TIME
 ```
+
+Open pftrace in https://ui.perfetto.dev
