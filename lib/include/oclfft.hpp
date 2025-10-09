@@ -117,6 +117,16 @@ void complex_to_magnitude(fftw_complex *data, size_t n);
 void bit_reverse(std::vector<std::complex<double>> *data);
 
 /**
+ * In-place FFTW computation (64bit double)
+ */
+void fftw_compute(std::vector<std::complex<double>> *data);
+
+/**
+ * In-place FFTW computation (32bit float)
+ */
+void fftw_compute_fp32(std::vector<std::complex<double>> *data);
+
+/**
  * In-place windowing using reference implementation
  */
 void window_nuttall(std::vector<std::complex<double>> *data);

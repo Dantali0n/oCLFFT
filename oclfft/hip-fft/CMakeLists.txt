@@ -46,3 +46,10 @@ target_link_libraries(
     hip-fft
     PRIVATE hip::hipfft ${${PRJ_PRX}_IMPL_LIBRARIES_PACK}
 )
+
+add_library(hip-fft-shared SHARED ${HIP_FFT_SOURCE} ${HIP_FFT_HEADERS})
+target_include_directories(hip-fft-shared PUBLIC ${CMAKE_SOURCE_DIR}/lib/include)
+target_include_directories(hip-fft-shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(
+    hip-fft-shared PUBLIC hip::hipfft ${${PRJ_PRX}_IMPL_LIBRARIES_PACK}
+)

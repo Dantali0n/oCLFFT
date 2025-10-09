@@ -77,6 +77,62 @@ void bit_reverse(std::vector<std::complex<double>> *data) {
 	}
 }
 
+void fftw_compute_fp32(std::vector<std::complex<double>> *data) {
+	size_t num_samples = data->size();
+	fftwf_complex *fw_in, *fw_out;
+	fftwf_plan p;
+	fw_in = (fftwf_complex *) fftw_malloc(sizeof(fftwf_complex) * num_samples);
+	fw_out = (fftwf_complex *) fftw_malloc(sizeof(fftwf_complex) * num_samples);
+
+	p = fftwf_plan_dft_1d(
+		num_samples, fw_in, fw_out, FFTW_FORWARD, FFTW_MEASURE
+	);
+
+	for(size_t i = 0; i < num_samples; i++) {
+		fw_in[i][0] = (*data)[i].real();
+		fw_in[i][1] = (*data)[i].imag();
+	}
+
+	fftwf_execute(p);
+
+	for(size_t i = 0; i < num_samples; i++) {
+		(*data)[i].real(fw_out[i][0]);
+		(*data)[i].imag(fw_out[i][1]);
+	}
+
+	fftwf_destroy_plan(p);
+	fftw_free(fw_in);
+	fftw_free(fw_out);
+}
+
+void fftw_compute(std::vector<std::complex<double>> *data) {
+	size_t num_samples = data->size();
+	fftw_complex *fw_in, *fw_out;
+	fftw_plan p;
+	fw_in = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * num_samples);
+	fw_out = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * num_samples);
+
+	p = fftw_plan_dft_1d(
+		num_samples, fw_in, fw_out, FFTW_FORWARD, FFTW_MEASURE
+	);
+
+	for(size_t i = 0; i < num_samples; i++) {
+		fw_in[i][0] = (*data)[i].real();
+		fw_in[i][1] = (*data)[i].imag();
+	}
+
+	fftw_execute(p);
+
+	for(size_t i = 0; i < num_samples; i++) {
+		(*data)[i].real(fw_out[i][0]);
+		(*data)[i].imag(fw_out[i][1]);
+	}
+
+	fftw_destroy_plan(p);
+	fftw_free(fw_in);
+	fftw_free(fw_out);
+}
+
 void window_nuttall(std::vector<std::complex<double>> *data) {
 	const size_t n = data->size();
 	const double TWO_PI = 2*M_PI;

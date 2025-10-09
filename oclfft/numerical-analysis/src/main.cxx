@@ -24,6 +24,8 @@
 #include "apfft.hpp"
 #include "rng.hpp"
 
+#include "oclfft.hpp"
+// #include "hip-fft.hpp"
 // #include "flk-ocl.hpp"
 #include "flk-ocl32.hpp"
 #include "results.hpp"
@@ -35,7 +37,7 @@ int main(int argc, char* argv[]) {
     struct options opts{};
     parse_args(argc, argv, &opts);
 
-	std::cout << "\t oCLFFT relative RMS error calculator:" << std::endl;
+	std::cout << "\t oCLFFT numerical analysis:" << std::endl;
 	std::cout << "  Samples: " << opts.samples << std::endl;
 	std::cout << "Precision: " << opts.precision << std::endl;
 	std::cout << "    Scale: " << opts.scale << std::endl;
@@ -70,15 +72,18 @@ int main(int argc, char* argv[]) {
 	}
 	auto results = Results();
 	oclfft::options ocl_opts{};
-	// Compatability preferred over speed here
+	// // Compatability preferred over speed here
 	ocl_opts.wavefront = 8;
 	ocl_opts.iterations = 1;
 	ocl_opts.samples = opts.samples;
 	auto focl = FlkOCL32(&data, ocl_opts, &results);
+	// auto focl = HipFFT(&data, ocl_opts, &results);
+	// // auto focl = HipFFT(&data, ocl_opts, &results);
 	focl.push();
 	focl.reverse();
 	focl.compute();
 	focl.synchronize();
+	// fftw_compute_fp32(&data);
 
 	/**
 	 * relative = (a - b) / b
@@ -86,19 +91,31 @@ int main(int argc, char* argv[]) {
 	 * rms   = np.sqrt(np.mean(np.abs(x)**2))		     # RMS
 	 *
 	 */
-	// apfft_data relative_error;
-	mpfr::mpreal rel;
+	mpfr::mpreal n1 = 0.0f;
+	mpfr::mpreal n2 = 0.0f;
+	mpfr::mpreal ninf = 0.0f;
+	mpfr::mpreal l1 = 0.0f;
 	mpfr::mpreal l2 = 0.0f;
+	mpfr::mpreal linf = 0.0f;
+	mpfr::mpreal ntemp = 0.0f;
+	mpfr::mpreal ltemp = 0.0f;
+	// Ln = ||x||n = (sum |xi|^n)^1/n
 	for (size_t i = 0; i < opts.samples; i++){
-		rel = mpfr::sqrt(
-			mpfr::pow(data[i].real() - real[i], 2) + mpfr::pow(data[i].imag() - imag[i], 2)
-		) / mpfr::sqrt(mpfr::pow(real[i], 2) + mpfr::pow(imag[i], 2));
-		// relative_error.push_back()
-		std::cout << rel << std::endl;
-		l2 += mpfr::pow(rel, 2);
+		ltemp =
+			mpfr::pow(data[i].real() - real[i], 2) +
+			mpfr::pow(data[i].imag() - imag[i], 2);
+		ntemp = mpfr::pow(real[i], 2) + mpfr::pow(imag[i], 2);
+		if (ntemp > ninf) ninf = ntemp;
+		if (ltemp > linf) linf = ltemp;
+		n1 += mpfr::sqrt(ntemp);
+		n2 += ntemp;
+		l1 += mpfr::sqrt(ltemp);
+		l2 += ltemp;
 	}
-	std::cout << "L1: " << mpfr::pow(l2, 1.f) << std::endl;
-	std::cout << "L2: " << mpfr::pow(l2, 0.5f) << std::endl;
+	// Compare(a, b) = ||a – b||n / ||b||n
+	std::cout << "L1: " << l1 / n1 << std::endl;
+	std::cout << "L2: " << mpfr::sqrt(l2 / n2) << std::endl;
+	std::cout << "Linf: " << mpfr::sqrt(linf / ninf) << std::endl;
 	std::cout << "RMS: " << mpfr::sqrt(l2 / real.size()) << std::endl;
 
     return 0;
