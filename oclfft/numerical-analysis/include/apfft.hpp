@@ -33,9 +33,9 @@ public:
     void compute();
     void magnitude();
 protected:
-    const mpfr::mpreal TWO_PI = 2 * mpfr::const_pi();
-    const mpfr::mpreal FOUR_PI = 4 * mpfr::const_pi();
-    const mpfr::mpreal SIX_PI = 6 * mpfr::const_pi();
+    const mpfr::mpreal TWO_PI = 2 * mpfr::const_pi(100);
+    const mpfr::mpreal FOUR_PI = 4 * mpfr::const_pi(100);
+    const mpfr::mpreal SIX_PI = 6 * mpfr::const_pi(100);
 
     template <class T> T sq(T x) {
         return x * x;
@@ -45,8 +45,8 @@ protected:
 
     size_t samples;
     size_t exponent;
-    apfft_data real;
-    apfft_data imag;
+    apfft_data *real;
+    apfft_data *imag;
 };
 
 #endif // APFFT_H

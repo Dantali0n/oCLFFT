@@ -18,7 +18,8 @@
 
 #include "flk-ocl32.hpp"
 
-const std::string FlkOCL32::cl_flags = "-O2 -x clc++ -cl-std=CL2.0";
+std::string FlkOCL32::cl_flags = "-O2 -x clc++ -cl-std=CL2.0";
+const std::string FlkOCL32::cl_flags_backup = "-cl-std=CL2.0";
 
 FlkOCL32::FlkOCL32(
     std::vector<std::complex<double>> *data, oclfft::options opts, Results *results) : oCLFFT(data
@@ -29,12 +30,6 @@ FlkOCL32::FlkOCL32(
     this->wavefront_size = opts.wavefront;
 	this->real = (float*) malloc(this->data_size);
 	this->imag = (float*) malloc(this->data_size);
-
-	// Go as fast as possible
-	if (opts.output == oclfft::OUT_NONE)
-	{
-		this->queue_synchronise = false;
-	}
 
 	std::vector<cl::Platform> all_platforms;
 	cl::Platform::get(&all_platforms);
@@ -71,14 +66,12 @@ FlkOCL32::FlkOCL32(
 	sources.push_back({&_binary_lookup_cl_start, static_cast<cl::size_type>((&_binary_lookup_cl_end - &_binary_lookup_cl_start))});
 	sources.push_back({&_binary_kernels_cl_start, static_cast<cl::size_type>((&_binary_kernels_cl_end - &_binary_kernels_cl_start))});
 
-    begin = std::chrono::high_resolution_clock::now();
-	this->cL_program = cl::Program(this->cl_context, sources);
-	if(this->cL_program.build({this->cl_device}, cl_flags.c_str()) != CL_SUCCESS) {
-		std::cout << "Error building: " << this->cL_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->cl_device) << std::endl;
-		exit(1);
+	if (!compileSources(&sources)) {
+		cl_flags = cl_flags_backup;
+		if (!compileSources(&sources)) {
+			exit(1);
+		}
 	}
-    end = std::chrono::high_resolution_clock::now();
-    std::cout << "Compile sources: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " ms" << std::endl;
 
     begin = std::chrono::high_resolution_clock::now();
 	this->cl_buffer_r = cl::Buffer(this->cl_context, CL_MEM_READ_WRITE, this->data_size);
@@ -160,7 +153,7 @@ void FlkOCL32::window() {
         std::cerr << "Failed to enqueue window" << std::endl;
     }
 
-	if(queue_synchronise && this->cl_queue.finish() != CL_SUCCESS) {
+	if(this->cl_queue.finish() != CL_SUCCESS) {
 		std::cerr << "Failed to finish window queue" << std::endl;
 	}
 }
@@ -240,7 +233,7 @@ void FlkOCL32::reverse() {
 //    end = std::chrono::high_resolution_clock::now();
 //    std::cout << "Bit column: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << std::endl;
 
-    if(queue_synchronise && this->cl_queue.finish() != CL_SUCCESS) {
+    if(this->cl_queue.finish() != CL_SUCCESS) {
         std::cerr << "Failed to finish bit reverse queue" << std::endl;
     }
 }
@@ -280,7 +273,7 @@ void FlkOCL32::compute() {
 //        this->cl_queue.finish();
 	}
 
-	if(queue_synchronise && this->cl_queue.finish() != CL_SUCCESS) {
+	if(this->cl_queue.finish() != CL_SUCCESS) {
 		std::cerr << "Failed to finish compute queue" << std::endl;
 	}
 }
@@ -297,9 +290,21 @@ void FlkOCL32::magnitude() {
         std::cerr << "Failed to enqueue magnitude" << std::endl;
     }
 
-	if(queue_synchronise && this->cl_queue.finish() != CL_SUCCESS) {
+	if(this->cl_queue.finish() != CL_SUCCESS) {
 		std::cerr << "Failed to finish magnitude queue" << std::endl;
 	}
+}
+
+bool FlkOCL32::compileSources(cl::Program::Sources *src) {
+	auto begin = std::chrono::high_resolution_clock::now();
+	this->cL_program = cl::Program(this->cl_context, *src);
+	if(this->cL_program.build({this->cl_device}, cl_flags.c_str()) != CL_SUCCESS) {
+		std::cout << "Error building: " << this->cL_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->cl_device) << std::endl;
+		return false;
+	}
+	auto end = std::chrono::high_resolution_clock::now();
+	std::cout << "Compile sources: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << " ms" << std::endl;
+	return true;
 }
 
 /**

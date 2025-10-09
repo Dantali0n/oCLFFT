@@ -61,7 +61,7 @@ namespace oclfft {
 	// Debug level to use throughout project
 	constexpr int DEBUG = 0;
 
-	// Enum to specifiy which type of output to generate
+	// Enum to specify which type of output to generate
 	enum Output {
 		OUT_NONE,
 		OUT_TIME,

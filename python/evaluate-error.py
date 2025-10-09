@@ -82,7 +82,16 @@ axs[0].legend(loc='upper left')
 
 difference = [abs(j - target[i]) for i, j in enumerate(reference)]
 error = [j - target[i] for i, j in enumerate(reference)]
-l2_norm = np.linalg.norm(error) / np.linalg.norm(reference)
+l2_norm = np.linalg.norm(error, ord=2) # / np.linalg.norm(reference, ord=2)
+
+relative_err = np.maximum(
+    (reference - target) / target,
+    (target - reference) / reference
+)
+
+print(l2_norm)
+print(np.sqrt(np.sum(error**2)))
+print(np.linalg.norm(relative_err, ord=2))
 
 p3 = CubicSpline(x, difference)
 

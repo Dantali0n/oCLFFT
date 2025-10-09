@@ -46,7 +46,6 @@ set(FLK_OCL_HEADERS
 
 message("${PRJ_PRX}: Fast-Lookup OpenCL cxx flags:${CMAKE_CXX_FLAGS}")
 add_executable(flk-ocl-fp32 ${FLK_OCL_SOURCE} ${FLK_OCL_HEADERS})
-
 target_include_directories(flk-ocl-fp32 PRIVATE ${CMAKE_SOURCE_DIR}/lib/include)
 target_include_directories(flk-ocl-fp32 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -58,6 +57,13 @@ set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
 target_link_libraries(
     flk-ocl-fp32
     ${${PRJ_PRX}_IMPL_LIBRARIES_PACK}
+)
+
+add_library(flk-ocl-fp32-shared SHARED ${FLK_OCL_SOURCE} ${FLK_OCL_HEADERS})
+target_include_directories(flk-ocl-fp32-shared PUBLIC ${CMAKE_SOURCE_DIR}/lib/include)
+target_include_directories(flk-ocl-fp32-shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(
+        flk-ocl-fp32-shared PUBLIC ${${PRJ_PRX}_IMPL_LIBRARIES_PACK}
 )
 
 # remove the objcopy source file after compilation so it always gets recompiled

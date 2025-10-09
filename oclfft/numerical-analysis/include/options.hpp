@@ -21,6 +21,13 @@
 
 #include <cstddef>
 
+// Enum to specify the test to use
+enum Test {
+	TEST_RANDOM_UNIFORM,
+	TEST_SINEWAVE,
+	TEST_IMPULSE,
+};
+
 /**
  * Program options structure
  */

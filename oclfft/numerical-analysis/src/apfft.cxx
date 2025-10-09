@@ -19,8 +19,8 @@
 #include "apfft.hpp"
 
 APFFT::APFFT(apfft_data *real, apfft_data *imag) {
-    this->real = *real;
-    this->imag = *imag;
+    this->real = real;
+    this->imag = imag;
     this->samples = real->size();
 
     this->exponent = 0;
@@ -36,28 +36,23 @@ void APFFT::synchronize() {
 }
 
 void APFFT::window() {
-    std::vector<mpfr::mpreal> reals = this->real;
-    std::vector<mpfr::mpreal> imags = this->imag;
-
     mpfr::mpreal samplesMinusOne = (mpfr::mpreal(samples) - 1.0);
     for (uint32_t i = 0; i < (samples >> 1); i++) {
         mpfr::mpreal indexMinusOne = mpfr::mpreal(i);
         mpfr::mpreal ratio = (indexMinusOne / samplesMinusOne);
         mpfr::mpreal weighingFactor = 0.355768 - (0.487396 * (cos(TWO_PI * ratio))) + (0.144232 * (cos(FOUR_PI * ratio))) - (0.012604 * (cos(SIX_PI * ratio)));
-        reals[i] *= weighingFactor;
-        reals[samples - (i + 1)] *= weighingFactor;
+        (*real)[i] *= weighingFactor;
+        (*real)[samples - (i + 1)] *= weighingFactor;
     }
 }
 
 void APFFT::compute() {
-    std::vector<mpfr::mpreal> reals = this->real;
-    std::vector<mpfr::mpreal> imags = this->imag;
     // reorder //
     uint32_t j = 0;
     for (uint32_t i = 0; i < (samples - 1); i++) {
         if (i < j) {
-            Swap(&reals[i], &reals[j]);
-            Swap(&imags[i], &imags[j]);
+            Swap(&(*real)[i], &(*real)[j]);
+            Swap(&(*imag)[i], &(*imag)[j]);
         }
 
         // Reverse bits /
@@ -81,12 +76,12 @@ void APFFT::compute() {
         for (j = 0; j < l1; j++) {
             for (uint32_t i = j; i < samples; i += l2) {
                 uint32_t i1 = i + l1;
-                mpfr::mpreal t1 = u1 * reals[i1] - u2 * imags[i1];
-                mpfr::mpreal t2 = u1 * imags[i1] + u2 * reals[i1];
-                reals[i1] = reals[i] - t1;
-                imags[i1] = imags[i] - t2;
-                reals[i] += t1;
-                imags[i] += t2;
+                mpfr::mpreal t1 = u1 * (*real)[i1] - u2 * (*imag)[i1];
+                mpfr::mpreal t2 = u1 * (*imag)[i1] + u2 * (*real)[i1];
+                (*real)[i1] = (*real)[i] - t1;
+                (*imag)[i1] = (*imag)[i] - t2;
+                (*real)[i] += t1;
+                (*imag)[i] += t2;
             }
             mpfr::mpreal z = ((u1 * c1) - (u2 * c2));
             u2 = ((u1 * c2) + (u2 * c1));
@@ -99,7 +94,9 @@ void APFFT::compute() {
 }
 
 void APFFT::magnitude() {
-//    real[i] = sqrt((real[i] * real[i]) + (imag[i] * imag[i]));
+    for (uint32_t i = 0; i < samples; i++) {
+        (*real)[i] = sqrt(((*real)[i] * (*real)[i]) + ((*imag)[i] * (*imag)[i]));
+    }
 }
 
 void APFFT::Swap(mpfr::mpreal *x, mpfr::mpreal *y) {

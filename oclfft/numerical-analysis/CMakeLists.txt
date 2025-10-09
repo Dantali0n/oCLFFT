@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-project(rms-error)
+project(numerical-analysis)
 
 find_package(MPFR REQUIRED)
 
@@ -32,14 +32,14 @@ set(${PRJ_PRX}_IMPL_LIBRARIES
     ${FFTW_LIBRARIES}
 )
 
-set(RMS_ERROR_SOURCE
+set(NUMERICAL_ANALYSIS_SOURCE
     src/apfft.cxx
     src/main.cxx
     src/parsing.cxx
     src/rng.cxx
 )
 
-set(RMS_ERROR_HEADERS
+set(NUMERICAL_ANALYSIS_HEADERS
     include/apfft.hpp
     include/defaults.hpp
     include/main.hpp
@@ -48,11 +48,12 @@ set(RMS_ERROR_HEADERS
 )
 
 message("${PRJ_PRX}: RMS error cxx flags:${CMAKE_CXX_FLAGS}")
-add_executable(rms-error ${RMS_ERROR_SOURCE} ${RMS_ERROR_HEADERS})
+add_executable(numerical-analysis ${NUMERICAL_ANALYSIS_SOURCE} ${NUMERICAL_ANALYSIS_HEADERS})
 
-target_include_directories(rms-error PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(numerical-analysis PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(
-    rms-error
-    ${${PRJ_PRX}_IMPL_LIBRARIES}
+    numerical-analysis
+    PUBLIC flk-ocl-fp32-shared
+    PRIVATE ${${PRJ_PRX}_IMPL_LIBRARIES}
 )

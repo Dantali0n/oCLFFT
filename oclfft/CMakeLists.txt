@@ -26,4 +26,4 @@ add_subdirectory(flk-ocl-fp32)
 add_subdirectory(hip-fft)
 
 # RMS error quantification
-add_subdirectory(rms-error)
+add_subdirectory(numerical-analysis)

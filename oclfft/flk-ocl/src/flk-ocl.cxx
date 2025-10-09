@@ -18,7 +18,8 @@
 
 #include "flk-ocl.hpp"
 
-const std::string FlkOCL::cl_flags = "-O2 -x clc++ -cl-std=CL2.0";
+std::string FlkOCL::cl_flags = "-O2 -x clc++ -cl-std=CL2.0";
+const std::string FlkOCL::cl_flags_backup = "-cl-std=CL2.0";
 
 FlkOCL::FlkOCL(std::vector<std::complex<double>> *data, Results *results) : oCLFFT(data) {
     this->results = results;

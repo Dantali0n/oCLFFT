@@ -208,6 +208,7 @@ void generate_output(std::vector<std::complex<double>> *result,
         fw_in[i][1] = (*original)[i].imag();
     }
     fftw_execute(p);
+	// Copy original data back in to FFTW buffers
     for(size_t i = 0; i < num_samples; i++) {
         fw_in[i][0] = (*original)[i].real();
         fw_in[i][1] = (*original)[i].imag();
@@ -227,8 +228,7 @@ void generate_output(std::vector<std::complex<double>> *result,
         << fftw_results.magnitude[0] << "," << fftw_results.sum(0).count()
         << std::endl;
 
-    // The OUT_NONE match is redundant
-    if(type != oclfft::OUT_TIME && type != oclfft::OUT_NONE) {
+    if(type == oclfft::OUT_REAL || type == oclfft::OUT_IMAGINARY) {
         bool imaginary = false;
         if (type == oclfft::OUT_IMAGINARY) imaginary = true;
         generate_output(fw_out, result, num_samples, imaginary);
@@ -285,8 +285,7 @@ void generate_output(std::vector<std::complex<double>> *result,
 	end = std::chrono::high_resolution_clock::now();
 	std::cout << "FFTW magnitude: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
 
-	// The OUT_NONE match is redundant
-	if(type != oclfft::OUT_TIME && type != oclfft::OUT_NONE) {
+	if(type == oclfft::OUT_REAL || type == oclfft::OUT_IMAGINARY) {
 		bool imaginary = false;
 		if (type == oclfft::OUT_IMAGINARY) imaginary = true;
 		generate_output(fw_out, result, num_samples, imaginary);
@@ -331,7 +330,7 @@ void generate_output(
 	double *data_tar = data_tar_r;
 	if(imaginary) data_tar = data_tar_i;
 
-	std::cout.precision(oclfft::db_lim::digits10);
+	std::cout.precision(oclfft::db_lim::digits);
 	std::cout << "fftw" << std::endl;
 	for (size_t i = 0; i < n >> 1; i++) {
 		std::cout << std::scientific << data_ref[i] << std::endl;
@@ -352,7 +351,7 @@ void generate_output(
 	double *data_ref = data_ref_r;
 	if(imaginary) data_ref = data_ref_i;
 
-	std::cout.precision(oclfft::db_lim::digits10);
+	std::cout.precision(oclfft::db_lim::digits);
 	std::cout << "fftw" << std::endl;
 	for (size_t i = 0; i < n >> 1; i++) {
 		std::cout << std::scientific << data_ref[i] << std::endl;

@@ -83,6 +83,8 @@ public:
 	void reverse();
 protected:
 
+	bool compileSources(cl::Program::Sources *src);
+
 	/**
 	 * Find the bit-reverse of a value for type T up to b bits.
 	 */
@@ -92,8 +94,6 @@ protected:
 	float *real;
     float *imag;
 	uint32_t *lookup;
-
-	bool queue_synchronise = true;
 
 	size_t size;
 	size_t data_size;
@@ -111,7 +111,8 @@ protected:
 	cl::Buffer cl_buffer_l;
 	cl::CommandQueue cl_queue;
 
-	static const std::string cl_flags;
+	static std::string cl_flags;
+	static const std::string cl_flags_backup;
 };
 
 #endif // flkocl32_h

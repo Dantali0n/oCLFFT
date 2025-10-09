@@ -107,7 +107,8 @@ protected:
 	cl::Buffer cl_buffer_l;
 	cl::CommandQueue cl_queue;
 
-	static const std::string cl_flags;
+	static std::string cl_flags;
+	static const std::string cl_flags_backup;
 };
 
 #endif // flkocl_h
