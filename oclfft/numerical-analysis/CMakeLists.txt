@@ -54,6 +54,6 @@ target_include_directories(numerical-analysis PRIVATE ${CMAKE_CURRENT_SOURCE_DIR
 
 target_link_libraries(
     numerical-analysis
-    PUBLIC flk-ocl-fp32-shared # hip-fft-shared
+    PUBLIC flk-ocl-shared
     PRIVATE ${${PRJ_PRX}_IMPL_LIBRARIES}
 )

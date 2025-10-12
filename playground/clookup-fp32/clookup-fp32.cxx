@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 	double c1 = -1.0;
 	double c2 = 0.0;
 
-	std::cout.precision(db_lim::digits10);
+	std::cout.precision(db_lim::max_digits10);
 
 	for(size_t i = 0; i < 22; i++) {
 		double u1 = 1.0;

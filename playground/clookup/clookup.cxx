@@ -24,10 +24,12 @@ typedef std::numeric_limits<double> db_lim;
 
 int main(int argc, char* argv[]) {
 	size_t l = 1;
+	static constexpr double one = 1.0;
+	static constexpr double two = 2.0;
 	double c1 = -1.0;
 	double c2 = 0.0;
 
-	std::cout.precision(db_lim::digits10);
+	std::cout.precision(db_lim::max_digits10);
 
 	for(size_t i = 0; i < 22; i++) {
 		double u1 = 1.0;
@@ -60,7 +62,7 @@ int main(int argc, char* argv[]) {
 		}
 		std::cout << "};" << std::endl;
 
-		c2 = -sqrt((1.0 - c1) / 2.0);
-		c1 = sqrt((1.0 + c1) / 2.0);
+		c2 = -sqrt((one - c1) / two);
+		c1 = sqrt((one + c1) / two);
 	}
 }

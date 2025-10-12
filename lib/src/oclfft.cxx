@@ -356,7 +356,7 @@ void generate_output(
 	fftw_complex *data_ref, std::vector<std::complex<double>> *data_tar,
 	size_t n, bool imaginary
 ) {
-	std::cout.precision(oclfft::db_lim::digits);
+	std::cout.precision(oclfft::db_lim::max_digits10);
 	std::cout << "fftw" << std::endl;
 	for (size_t i = 0; i < n >> 0; i++) {
 		if (imaginary)
@@ -386,7 +386,7 @@ void generate_output(
 	double *data_tar = data_tar_r;
 	if(imaginary) data_tar = data_tar_i;
 
-	std::cout.precision(oclfft::db_lim::digits);
+	std::cout.precision(oclfft::db_lim::max_digits10);
 	std::cout << "fftw" << std::endl;
 	for (size_t i = 0; i < n >> 1; i++) {
 		std::cout << std::scientific << data_ref[i] << std::endl;
@@ -407,7 +407,7 @@ void generate_output(
 	double *data_ref = data_ref_r;
 	if(imaginary) data_ref = data_ref_i;
 
-	std::cout.precision(oclfft::db_lim::digits);
+	std::cout.precision(oclfft::db_lim::max_digits10);
 	std::cout << "fftw" << std::endl;
 	for (size_t i = 0; i < n >> 1; i++) {
 		std::cout << std::scientific << data_ref[i] << std::endl;

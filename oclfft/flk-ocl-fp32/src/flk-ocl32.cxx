@@ -259,8 +259,8 @@ void FlkOCL32::compute() {
         kernel.setArg(7, cl_size_t, &local_x);
         kernel.setArg(8, cl_size_t, &local_y);
 
-        std::cout << "pow:[" << i << "][" << L[i] << "," << this->size/L[i + 1] << "]"
-                  << "[" << local_x << "," << local_y << "]" << std::endl;
+        // std::cout << "pow:[" << i << "][" << L[i] << "," << this->size/L[i + 1] << "]"
+        //           << "[" << local_x << "," << local_y << "]" << std::endl;
 
 		// We can still some of the global range and make the local range larger.
         if(this->cl_queue.enqueueNDRangeKernel(
