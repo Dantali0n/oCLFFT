@@ -49,10 +49,16 @@ def read_csv_file(path: str) -> pd.DataFrame:
         raise
 
 
-def theoretical_bound(N: np.ndarray, c: float) -> np.ndarray:
+def theoretical_bound_l2(N: np.ndarray, c: float) -> np.ndarray:
     """c * eps * log2(N)  (eps = double‑precision machine epsilon)."""
     eps = np.finfo(np.float32).eps
     return c * eps * np.log2(N)
+
+
+def theoretical_bound_linf(N: np.ndarray) -> np.ndarray:
+    """c * eps * log2(N)  (eps = double‑precision machine epsilon)."""
+    eps = np.finfo(np.float32).eps
+    return np.pow(2, np.log2(N)+1) * (2*np.log2(N)+1) * np.sqrt(2) * eps
 
 
 def nice_label(csv_path: str) -> str:
@@ -111,17 +117,27 @@ def plot_error_norms(csv_paths, c_factor: float):
     # ------------------------------------------------------------------
     # Plot the theoretical bound – ONLY on L1, L2 and Linf
     # ------------------------------------------------------------------
-    bound_vals = theoretical_bound(N_fine, c_factor)
+    bound_vals = {
+        "L2": theoretical_bound_l2(N_fine, c_factor),
+        "Linf": theoretical_bound_linf(N_fine)
+    }
+    bound_labels = {
+        "L2": f"c·ε·log₂N, c={c_factor}",
+        "Linf": "2^(2log₂N+1)·(2log₂N+1)·√2·ε"
+    }
 
     for norm_name in ("L1", "L2", "Linf"):
+        if norm_name not in bound_vals:
+            continue
         ax = ax_dict[norm_name]
         ax.loglog(
             N_fine,
-            bound_vals,
+            bound_vals[norm_name],
             color="black",
             linestyle="--",
             linewidth=2,
-            label=f"Theoretical bound (c·ε·log₂N, c={c_factor})",
+            label=f"Theoretical bound ({bound_labels[norm_name]})",
+
         )
 
     # ------------------------------------------------------------------
