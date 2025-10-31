@@ -12,7 +12,7 @@ build_ci_runner_image:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker context create my-builder
     - docker buildx create my-builder --driver docker-container --use
-    - docker buildx build --push -t $CI_REGISTRY_IMAGE/ci-build-runner:$CI_COMMIT_REF_SLUG --cache-to type=registry,ref=$CI_REGISTRY_IMAGE/ci-build-runner-cache:$CI_COMMIT_REF_SLUG,mode=max --cache-from type=registry,ref=$CI_REGISTRY_IMAGE/ci-build-runner-cache:$CI_COMMIT_REF_SLUG  docker/ci-runner
+    - docker buildx build --push -t $CI_REGISTRY_IMAGE/ci-build-runner:$CI_COMMIT_REF_SLUG --cache-to type=registry,ref=$CI_REGISTRY_IMAGE/ci-build-runner-cache:$CI_COMMIT_REF_SLUG,mode=max --cache-from type=registry,ref=$CI_REGISTRY_IMAGE/ci-build-runner-cache:$CI_COMMIT_REF_SLUG  docker/
 
 
 
