@@ -10,19 +10,11 @@ build_ci_runner_image:
     - apk add yq
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - |
-      if docker pull $CI_REGISTRY_IMAGE/ci-build-runner:$CI_COMMIT_REF_SLUG; then
-        docker build --cache-from $CI_REGISTRY_IMAGE/ci-build-runner:$CI_COMMIT_REF_SLUG --tag $CI_REGISTRY_IMAGE/ci-build-runner:$CI_COMMIT_REF_SLUG docker/
-      else
-        docker pull $CI_REGISTRY_IMAGE/ci-build-runner:latest || true
-        docker build --cache-from $CI_REGISTRY_IMAGE/ci-build-runner:latest --tag $CI_REGISTRY_IMAGE/ci-build-runner:$CI_COMMIT_REF_SLUG docker/
-      fi
-    - docker push $CI_REGISTRY_IMAGE/ci-build-runner:$CI_COMMIT_REF_SLUG  # push the image
-    - |
-      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
-        docker image tag $CI_REGISTRY_IMAGE/ci-build-runner:$CI_COMMIT_REF_SLUG $CI_REGISTRY_IMAGE/ci-build-runner:latest
-        docker push $CI_REGISTRY_IMAGE/ci-build-runner:latest
-      fi
+    - docker context create my-builder
+    - docker buildx create my-builder --driver docker-container --use
+    - docker buildx build --push -t $CI_REGISTRY_IMAGE/ci-build-runner:$CI_COMMIT_REF_SLUG --cache-to type=registry,ref=$CI_REGISTRY_IMAGE/ci-build-runner-cache:$CI_COMMIT_REF_SLUG,mode=max --cache-from type=registry,ref=$CI_REGISTRY_IMAGE/ci-build-runner-cache:$CI_COMMIT_REF_SLUG  docker/ci-runner
+
+
 
 workflow:
   rules:
