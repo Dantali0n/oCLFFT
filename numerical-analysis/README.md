@@ -4,3 +4,4 @@
 ### References
 
 1. Accuracy and Stability of Numerical Algorithms (2nd edition), Nicholas.J Higham
+2. https://hal.science/hal-01949458v1/file/Bounds-FFT-HAL.pdf
