@@ -20,7 +20,11 @@ RUN --mount=type=cache,target=/var/cache/apt \
     gcovr \
     git \
     graphviz \
+    libboost-dev \
     libboost-test-dev \
+    libboost-program-options-dev libboost-timer-dev \
+    libfftw3-dev \
+    libmpfr-dev libmpfrc++-dev \
     libsfml-dev \
     ninja-build \
     wget \
