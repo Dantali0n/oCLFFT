@@ -17,6 +17,8 @@ RUN --mount=type=cache,target=/var/cache/apt \
     cmake-format \
     curl \
     doxygen \
+    texinfo \
+    texlive-full \
     gcovr \
     git \
     graphviz \
