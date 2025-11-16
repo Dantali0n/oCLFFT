@@ -108,7 +108,7 @@ build-binaries:
     - make dft-seq-fp32
     - make flk-ocl
     - make flk-ocl-fp32
-    - make rms-error
+    - make numerical-analysis
     - make play-objcopy
     - make play-example
     - make play-reversegen
