@@ -125,7 +125,7 @@ test:
   variables:
     CTEST_OUTPUT_ON_FAILURE: 1
   script:
-    - make test
+    - make run_tests
 
 release_job:
   stage: release

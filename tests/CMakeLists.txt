@@ -175,3 +175,9 @@ target_link_libraries(
 add_test(TestDFTSeq testdftseq)
 add_test(TestARDSeq testardseq)
 add_test(TestARDocl testardocl)
+
+add_custom_target(run_tests
+    DEPENDS testdftseq testardseq testardocl
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+    COMMENT "Run all tests with output on failure"
+)
