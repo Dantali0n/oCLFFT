@@ -121,6 +121,8 @@ test:
   stage: test
   needs:
     - trigger-prepare
+    - build-lookup
+    - build-library
     - build-binaries
   variables:
     CTEST_OUTPUT_ON_FAILURE: 1
