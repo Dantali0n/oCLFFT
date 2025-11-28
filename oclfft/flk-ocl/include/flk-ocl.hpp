@@ -27,7 +27,7 @@
 
 #define CL_HPP_TARGET_OPENCL_VERSION 200
 
-#include <CL/cl2.hpp>
+#include <CL/opencl.hpp>
 
 /** Because writing multi-line strings as code is insanity */
 /*https://www.linuxjournal.com/content/embedding-file-executable-aka-hello-world-version-5967 */
@@ -72,8 +72,9 @@ static constexpr double C2[] = {
 
 class FlkOCL : public oCLFFT {
 public:
-	FlkOCL(std::vector<std::complex<double>> *data); // : oCLFFT(data)
-	void synchronize() override;
+	FlkOCL(std::vector<std::complex<double>> *data, Results *results); // : oCLFFT(data)
+    void push() override;
+    void synchronize() override;
 	void window() override;
 	void compute() override;
 	void magnitude() override;
@@ -95,6 +96,8 @@ protected:
 	size_t data_size;
 	size_t lookup_size;
 
+    Results *results;
+
 	cl::Device cl_device;
 	cl::Context cl_context;
 	cl::Program cL_program;
@@ -104,7 +107,8 @@ protected:
 	cl::Buffer cl_buffer_l;
 	cl::CommandQueue cl_queue;
 
-	static const std::string cl_flags;
+	static std::string cl_flags;
+	static const std::string cl_flags_backup;
 };
 
 #endif // flkocl_h

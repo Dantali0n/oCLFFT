@@ -36,6 +36,15 @@ void kernel print_layout() {
     printf("G[%lu]L[%lu]\n", get_global_id(0), get_local_id(0));
 }
 
+/**
+ * First executed kernel has drastically lower overall performance.
+ * Submit this kernel as no-op to prevent impact
+ */
+void kernel dummy_operation() {
+    const size_t i = get_group_id(0)  + get_local_id(0);
+    float temp = cos(TWO_PI * i);
+}
+
 void kernel window(global double *real, global double *imag, ulong size) {
     const size_t n = size;
     const size_t i = get_global_id(0);

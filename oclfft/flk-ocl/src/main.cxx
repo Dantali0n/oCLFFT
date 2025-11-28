@@ -19,40 +19,47 @@
 #include "flk-ocl.hpp"
 
 int main(int argc, char* argv[]) {
+    auto data = std::vector<std::complex<double>>();
+    auto results = Results();
 	oclfft::options opts{};
 	parse_args(argc, argv, &opts);
-
-	auto data = std::vector<std::complex<double>>();
 
 	parse_file(opts.file.get(), &data, opts.samples);
 	auto copy = data;
 
 	std::cout << "Samples: " << data.size() << std::endl;
 
-	auto focl = FlkOCL(&data);
+    auto focl = FlkOCL(&data, &results);
+    for(size_t i = 0; i < opts.iterations; i++) {
 
-	auto begin = std::chrono::high_resolution_clock::now();
-	focl.window();
-	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << "Window: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+        data.clear();
+        parse_file(opts.file.get(), &data, opts.samples);
 
-	begin = std::chrono::high_resolution_clock::now();
-	focl.reverse();
-	end = std::chrono::high_resolution_clock::now();
-	std::cout << "Reverse: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+        focl.push();
 
-	begin = std::chrono::high_resolution_clock::now();
-	focl.compute();
-	end = std::chrono::high_resolution_clock::now();
-	std::cout << "FFT: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+        auto begin = std::chrono::high_resolution_clock::now();
+        focl.window();
+        auto end = std::chrono::high_resolution_clock::now();
+        results.window.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
 
-	begin = std::chrono::high_resolution_clock::now();
-	focl.magnitude();
-	end = std::chrono::high_resolution_clock::now();
-	std::cout << "Magnitude: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+        begin = std::chrono::high_resolution_clock::now();
+        focl.reverse();
+        end = std::chrono::high_resolution_clock::now();
+        results.reverse.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
 
-	focl.synchronize();
+        begin = std::chrono::high_resolution_clock::now();
+        focl.compute();
+        end = std::chrono::high_resolution_clock::now();
+        results.fft.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
 
-	if(opts.output != oclfft::OUT_NONE)
-		generate_output(&data, &copy, opts.output);
+        begin = std::chrono::high_resolution_clock::now();
+        focl.magnitude();
+        end = std::chrono::high_resolution_clock::now();
+        results.magnitude.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
+
+        focl.synchronize();
+    }
+
+    if(opts.output != oclfft::OUT_NONE)
+        generate_output(&data, &copy, &results, opts.output);
 }

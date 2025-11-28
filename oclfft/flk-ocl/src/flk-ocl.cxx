@@ -18,19 +18,15 @@
 
 #include "flk-ocl.hpp"
 
-const std::string FlkOCL::cl_flags = "-O2 -x clc++ -cl-std=CL2.0";
+std::string FlkOCL::cl_flags = "-O2 -x clc++ -cl-std=CL2.0";
+const std::string FlkOCL::cl_flags_backup = "-cl-std=CL2.0";
 
-FlkOCL::FlkOCL(std::vector<std::complex<double>> *data) : oCLFFT(data) {
-
+FlkOCL::FlkOCL(std::vector<std::complex<double>> *data, Results *results) : oCLFFT(data) {
+    this->results = results;
 	this->size = data->size();
 	this->data_size = sizeof(double) * this->size;
 	this->real = (double*) malloc(this->data_size);
 	this->imag = (double*) malloc(this->data_size);
-	for(size_t i = 0; i < this->size; i++) {
-		std::complex<double> elem = (*data)[i];
-		this->real[i] = elem.real();
-		this->imag[i] = elem.imag();
-	}
 
 	std::vector<cl::Platform> all_platforms;
 	cl::Platform::get(&all_platforms);
@@ -98,15 +94,26 @@ FlkOCL::FlkOCL(std::vector<std::complex<double>> *data) : oCLFFT(data) {
 
 	this->cl_buffer_l = cl::Buffer(this->cl_context, CL_MEM_READ_ONLY, this->lookup_size);
 
-	auto begin = std::chrono::high_resolution_clock::now();
-	this->cl_queue.enqueueWriteBuffer(this->cl_buffer_r, CL_TRUE, 0, this->data_size, this->real);
-	this->cl_queue.enqueueWriteBuffer(this->cl_buffer_i, CL_TRUE, 0, this->data_size, this->imag);
-	this->cl_queue.enqueueWriteBuffer(this->cl_buffer_l, CL_TRUE, 0, this->lookup_size, this->lookup);
-	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << "Copy host to device: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+    cl::Kernel kernel_add = cl::Kernel(this->cL_program, "dummy_operation");
+    if(this->cl_queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(this->size>>1), cl::NDRange(2)) != CL_SUCCESS) {
+        std::cerr << "Failed to enqueue dummy_operation" << std::endl;
+    }
+    this->cl_queue.finish();
+}
 
-//	cl::Kernel kernel_add = cl::Kernel(this->cL_program, "print_layout");
-//	this->cl_queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(this->size), cl::NDRange(32));
+void FlkOCL::push() {
+    for(size_t i = 0; i < this->size; i++) {
+        std::complex<double> elem = (*data)[i];
+        this->real[i] = elem.real();
+        this->imag[i] = elem.imag();
+    }
+
+    auto begin = std::chrono::high_resolution_clock::now();
+    this->cl_queue.enqueueWriteBuffer(this->cl_buffer_r, CL_TRUE, 0, this->data_size, this->real);
+    this->cl_queue.enqueueWriteBuffer(this->cl_buffer_i, CL_TRUE, 0, this->data_size, this->imag);
+    this->cl_queue.enqueueWriteBuffer(this->cl_buffer_l, CL_TRUE, 0, this->lookup_size, this->lookup);
+    auto end = std::chrono::high_resolution_clock::now();
+    results->copy_host_to_device.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
 }
 
 void FlkOCL::synchronize() {
@@ -114,7 +121,7 @@ void FlkOCL::synchronize() {
 	this->cl_queue.enqueueReadBuffer(this->cl_buffer_r, CL_TRUE, 0, this->data_size, this->real);
 	this->cl_queue.enqueueReadBuffer(this->cl_buffer_i, CL_TRUE, 0, this->data_size, this->imag);
 	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << "Copy device to host: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+    results->copy_device_to_host.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count());
 
 	for(size_t i = 0; i < this->size; i++) {
 		(*this->data)[i].real(this->real[i]);
@@ -151,7 +158,7 @@ void FlkOCL::reverse() {
 	kernel_col.setArg(1, this->cl_buffer_i);
 	kernel_col.setArg(2, this->cl_buffer_l);
 	kernel_col.setArg(3, cl_size_t, &height);
-	std::cout << "height: " << height << ", block_x: " << block_x << ", block_y: " << block_y << std::endl;
+    //	std::cout << "height: " << height << ", block_x: " << block_x << ", block_y: " << block_y << std::endl;
 
 	// use block_x as first index as hope to optimize for column major accesses,
 	// OpenCL will need to place block_y in same wavefronts. If performance

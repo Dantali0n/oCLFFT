@@ -74,15 +74,15 @@ ArdOCL::ArdOCL(std::vector<std::complex<double>> *data) : oCLFFT(data) {
 
 	this->cl_queue = cl::CommandQueue(this->cl_context, this->cl_device);
 
-	auto begin = std::chrono::high_resolution_clock::now();
-	this->cl_queue.enqueueWriteBuffer(this->cl_buffer_r, CL_TRUE, 0, this->data_size, this->real);
-	this->cl_queue.enqueueWriteBuffer(this->cl_buffer_i, CL_TRUE, 0, this->data_size, this->imag);
-	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << "Copy host to device: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
+    this->push();
+}
 
-//	cl::Kernel kernel_add = cl::Kernel(this->cL_program, "print_layout");
-//	this->cl_queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(this->size), cl::NDRange(32));
-//	this->cl_queue.finish();
+void ArdOCL::push() {
+    auto begin = std::chrono::high_resolution_clock::now();
+    this->cl_queue.enqueueWriteBuffer(this->cl_buffer_r, CL_TRUE, 0, this->data_size, this->real);
+    this->cl_queue.enqueueWriteBuffer(this->cl_buffer_i, CL_TRUE, 0, this->data_size, this->imag);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Copy host to device: " << std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count() << "" << std::endl;
 }
 
 void ArdOCL::synchronize() {

@@ -16,9 +16,6 @@
 
 project(flk-ocl)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 set(${PRJ_PRX}_IMPL_LIBRARIES
     ${PRJ_LIB}
 )
@@ -50,6 +47,9 @@ set(FLK_OCL_HEADERS
 message("${PRJ_PRX}: Fast-Lookup OpenCL cxx flags:${CMAKE_CXX_FLAGS}")
 add_executable(flk-ocl ${FLK_OCL_SOURCE} ${FLK_OCL_HEADERS})
 
+target_include_directories(flk-ocl PRIVATE ${CMAKE_SOURCE_DIR}/lib/include)
+target_include_directories(flk-ocl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
     ${${PRJ_PRX}_LIBRARIES}
     ${${PRJ_PRX}_IMPL_LIBRARIES}
@@ -58,6 +58,13 @@ set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
 target_link_libraries(
     flk-ocl
     ${${PRJ_PRX}_IMPL_LIBRARIES_PACK}
+)
+
+add_library(flk-ocl-shared SHARED ${FLK_OCL_SOURCE} ${FLK_OCL_HEADERS})
+target_include_directories(flk-ocl-shared PUBLIC ${CMAKE_SOURCE_DIR}/lib/include)
+target_include_directories(flk-ocl-shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(
+        flk-ocl-shared PUBLIC ${${PRJ_PRX}_IMPL_LIBRARIES_PACK}
 )
 
 # remove the objcopy source file after compilation so it always gets recompiled

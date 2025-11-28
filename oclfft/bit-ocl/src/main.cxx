@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
 	std::cout << "Samples: " << data.size() << std::endl;
 
-	auto aocl = ArdOCL(&data);
+	auto aocl = BitOCL(&data);
 
 	auto begin = std::chrono::high_resolution_clock::now();
 	aocl.window();

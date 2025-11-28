@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 PROJECT(oCLFFT)
 
 # 3.0 is minimum version as it is the first version to include FindOpenCL
@@ -43,16 +43,16 @@ use_cxx_warning_pedantic()
 # Configurable options and defaults
 OPTION(ENABLE_TESTS "Enable unit tests" ON)
 OPTION(ENABLE_CODECOV "Measure code coverage" OFF)
-OPTION(ENABLE_DOXYGEN "Generate documentation" ON)
+OPTION(ENABLE_DOXYGEN "Generate documentation" OFF)
 OPTION(ENABLE_CI "Enable continuous integration" OFF)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib/include)
+#include_directories(${CMAKE_SOURCE_DIR}/lib/include)
 
 # Required packages
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
-find_package(OpenCL 2.0 REQUIRED)
+find_package(OpenCL 2.2 REQUIRED)
 
 # Include Commonly required headers
 # include_directories(${ZeroMQ_INCLUDE_DIR})
@@ -89,8 +89,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -O0")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
 	message("${PRJ_PRX}: Enabling extensive optimizations")
-	set(CMAKE_CXX_FLAGS 
-		"${CMAKE_CXX_FLAGS} -Ofast -ffast-math -ftree-vectorize")
+#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Ofast -ffast-math -ftree-vectorize")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -O3 -ftree-vectorize")
 endif()
 
 # Commonly shared library

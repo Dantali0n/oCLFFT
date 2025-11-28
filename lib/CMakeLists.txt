@@ -17,7 +17,7 @@
 project(${PRJ_LIB})
 
 find_package(
-    Boost 1.32 COMPONENTS
+    Boost 1.32 CONFIG COMPONENTS
     program_options
     REQUIRED
 )
@@ -32,19 +32,23 @@ set(${PRJ_LIB}_LIBRARIES
 set(LIB_${PRJ_LIB}_SRC
     src/oclfft.cxx
     src/parsing.cxx
+    src/results.cxx
 )
 
 set(LIB_${PRJ_LIB}_HEADERS.
     include/oclfft.hpp
     include/parsing.hpp
+    include/results.hpp
 )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(
     ${PRJ_LIB} SHARED
     ${LIB_${PRJ_LIB}_SRC}
     ${LIB_${PRJ_LIB}_HEADERS}
 )
+
+target_include_directories(${PRJ_LIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 set_target_properties(${PRJ_LIB} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(
     ${PRJ_LIB}

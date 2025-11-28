@@ -24,7 +24,8 @@
 class dftseq : public oCLFFT {
 	public:
 		using oCLFFT::oCLFFT;
-		void synchronize() override;
+        void push() override;
+        void synchronize() override;
 		void window() override;
 		void compute() override;
 		void magnitude() override;

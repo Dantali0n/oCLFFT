@@ -14,11 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.9)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 project(ard-omp)
-
-include_directories(${CMAKE_SOURCE_DIR}/lib/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 find_package(OpenMP REQUIRED)
 
@@ -39,6 +36,8 @@ set(ARD_OMP_HEADERS
 message("${PRJ_PRX}: DFT openmp cxx flags:${CMAKE_CXX_FLAGS}")
 add_executable(ard-omp ${ARD_OMP_SOURCE} ${ARD_OMP_HEADERS})
 
+target_include_directories(ard-omp PRIVATE ${CMAKE_SOURCE_DIR}/lib/include)
+target_include_directories(ard-omp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
     ${${PRJ_PRX}_LIBRARIES}

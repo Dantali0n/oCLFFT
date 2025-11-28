@@ -23,6 +23,13 @@ import numpy as np
 
 import fileinput
 
+def l2_radix2_bound(N: int):
+    eps = np.finfo(np.float32).eps           # 2.220446049250313e-16
+    k   = int(np.log2(N))                    # 20 stages
+    gamma = (k*eps) / (1 - k*eps)            # ≈ k*eps because k*eps ≈ 4.44e-15 << 1
+    c = 1.0                                   # radix‑2 gives c≈1 (Higham)
+    return  c * eps * np.log2(N)
+
 reference = []
 target = []
 
@@ -30,18 +37,18 @@ mode = 0
 
 for line in fileinput.input():
     line = line.rstrip()
-    if "ref" in line:
+    if "fftw" in line:
         mode = 0
-    elif "tar" in line:
+    elif "oclfft" in line:
         mode = 1
     elif "eof" in line:
         break
-    elif mode is 0:
+    elif mode == 0:
         try:
             reference.append(float(line))
         except:
             print(line)
-    elif mode is 1:
+    elif mode == 1:
         target.append(float(line))
 
 x = [x for x in range(len(reference))]
@@ -65,8 +72,8 @@ p2 = CubicSpline(x, target)
 axs[0].set_title("Evaluate FFT",fontsize=16)
 axs[0].set_xlabel('bin', fontsize=18)
 axs[0].set_ylabel('amplitude', fontsize=16)
-axs[0].plot(x, reference, 'ro',label="reference", color='red')
-axs[0].plot(x, target, 'ro',label="target", color='blue')
+axs[0].plot(x, reference, 'ro', label="FFTW")
+axs[0].plot(x, target, 'bo', label="oCLFFT")
 axs[0].plot(x, p2(x), color='cyan') # plot first order polynomial
 axs[0].plot(x, p1(x), color='pink') # plot first order polynomial
 axs[0].legend(loc='upper left')
@@ -74,15 +81,19 @@ axs[0].legend(loc='upper left')
 #axs[0].set_yscale('log')
 
 difference = [abs(j - target[i]) for i, j in enumerate(reference)]
+error = [j - target[i] for i, j in enumerate(reference)]
+l2_norm = np.linalg.norm(difference, ord=2) / np.linalg.norm(reference, ord=2)
 
 p3 = CubicSpline(x, difference)
 
-axs[1].set_title("Error",fontsize=16)
-axs[1].set_xlabel('bin', fontsize=18)
-axs[1].set_ylabel('error', fontsize=16)
-axs[1].plot(x, difference, 'ro',label="difference", color='red')
-axs[1].plot(x, p3(x), color='pink') # plot first order polynomial
-axs[1].legend(loc='upper left')
-axs[1].yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2e'))
+axs[1].semilogy(x, difference, 'b.-')
+axs[1].set_title('Error Spectrum (Difference)')
+axs[1].set_xlabel('n')
+axs[1].set_ylabel('Difference abs(a-b)')
+# axs[1].axhline(l2_radix2_bound(len(x)), 0, 1, color='red', linestyle='solid', label="cε log2(N)")
+axs[1].text(0.02, 0.98, f"Upper bound cε log2(N) (radix2 fp32): {l2_radix2_bound(len(x))}", horizontalalignment='left', verticalalignment='top', transform=axs[1].transAxes)
+axs[1].text(0.02, 0.95, f"L2 norm: {l2_norm:.4e}", horizontalalignment='left', verticalalignment='top', transform=axs[1].transAxes)
+axs[1].text(0.02, 0.92, f"Max absolute error: {np.max(difference):.4e}", horizontalalignment='left', verticalalignment='top', transform=axs[1].transAxes)
+axs[1].grid(True, which='both', ls=':')
 
 plt.show()

@@ -18,7 +18,10 @@
 
 #include <cstdint>
 #include <iostream>
-#include <CL/cl.hpp>
+
+#define CL_HPP_TARGET_OPENCL_VERSION 200
+
+#include <CL/opencl.hpp>
 
 /** Because writing multi-line strings as code is insanity */
 /*https://www.linuxjournal.com/content/embedding-file-executable-aka-hello-world-version-5967 */
@@ -50,7 +53,7 @@ int main() {
 
 	cl::Context context({default_device});
 	cl::Program::Sources sources;
-	sources.push_back({&_binary_data_cl_start, (&_binary_data_cl_end - &_binary_data_cl_start)});
+	sources.push_back({&_binary_data_cl_start, static_cast<cl::size_type>((&_binary_data_cl_end - &_binary_data_cl_start))});
 
 	cl::Program program(context, sources);
 	if(program.build({default_device}) != CL_SUCCESS) {

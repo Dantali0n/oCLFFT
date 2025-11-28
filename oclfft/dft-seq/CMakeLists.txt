@@ -16,8 +16,6 @@
 
 project(dft-seq)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -ffast-math -ftree-vectorize")
 
 set(${PRJ_PRX}_IMPL_LIBRARIES
@@ -36,6 +34,7 @@ set(DFT_SEQ_HEADERS
 message("${PRJ_PRX}: DFT sequential cxx flags:${CMAKE_CXX_FLAGS}")
 add_executable(dft-seq ${DFT_SEQ_SOURCE} ${DFT_SEQ_HEADERS})
 
+target_include_directories(dft-seq PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
     ${${PRJ_PRX}_LIBRARIES}

@@ -16,9 +16,6 @@
 
 project(ard-ocl)
 
-include_directories(${CMAKE_SOURCE_DIR}/lib/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 set(${PRJ_PRX}_IMPL_LIBRARIES
     ${PRJ_LIB}
 )
@@ -38,17 +35,20 @@ add_custom_command(OUTPUT ${lookup-data}
 
 set(ARD_OCL_SOURCE
     src/main.cxx
-        src/ard-ocl.cxx
+    src/ard-ocl.cxx
     ${kernel-data}
     ${lookup-data}
 )
 
 set(ARD_OCL_HEADERS
-        include/ard-ocl.hpp
+    include/ard-ocl.hpp
 )
 
 message("${PRJ_PRX}: Arduino OpenCL cxx flags:${CMAKE_CXX_FLAGS}")
 add_executable(ard-ocl ${ARD_OCL_SOURCE} ${ARD_OCL_HEADERS})
+
+target_include_directories(ard-ocl PRIVATE ${CMAKE_SOURCE_DIR}/lib/include)
+target_include_directories(ard-ocl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(${PRJ_PRX}_IMPL_LIBRARIES_PACK
     ${${PRJ_PRX}_LIBRARIES}

@@ -27,7 +27,7 @@
 
 #define CL_HPP_TARGET_OPENCL_VERSION 200
 
-#include <CL/cl2.hpp>
+#include <CL/opencl.hpp>
 
 /** Because writing multi-line strings as code is insanity */
 /*https://www.linuxjournal.com/content/embedding-file-executable-aka-hello-world-version-5967 */
@@ -73,7 +73,8 @@ static constexpr double C2[] = {
 class ArdOCL : public oCLFFT {
 public:
 	ArdOCL(std::vector<std::complex<double>> *data); // : oCLFFT(data)
-	void synchronize() override;
+    void push() override;
+    void synchronize() override;
 	void window() override;
 	void compute() override;
 	void magnitude() override;

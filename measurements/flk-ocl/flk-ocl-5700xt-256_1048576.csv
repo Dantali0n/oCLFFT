@@ -1,0 +1,3 @@
+copy_host_to_device,window,bit_reverse,fft,magnititude,copy_device_to_host,total
+2292,308,2744,2225,100,645,0.008214
+2210,308,2786,2174,100,644,0.008122
